@@ -52,7 +52,7 @@
                 <div class="flex items-center space-x-3">
                     <!-- Ignite Clan Logo -->
                     <img src="https://imgur.com/u2cvtkN.png" alt="Ignite Clan Logo" width="40" height="40" class="glow rounded-lg">
-                    <h1 class="text-2xl font-bold flame-text font-mono">IGNITE</h1>
+                    <h1 class="text-2xl font-bold flame-text">IGNITE</h1>
                 </div>
                 <div class="flex space-x-6">
                     <button onclick="showSection('welcome')" class="nav-item px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 transition-all">Welcome</button>
@@ -71,7 +71,7 @@
         <div id="welcome" class="section">
             <div class="max-w-6xl mx-auto px-4 py-12">
                 <div class="text-center mb-12">
-                    <h2 class="text-5xl font-bold flame-text mb-6">Welcome to Ignite!</h2>
+                    <h2 class="text-5xl font-bold flame-text mb-6" style="line-height: 1.2;">Welcome to Ignite!</h2>
                     <p class="text-xl text-gray-300 max-w-3xl mx-auto mb-4">
                         Please change your discord name to your in-game name
                     </p>
@@ -305,42 +305,17 @@
         <div id="announcements" class="section hidden">
             <div class="max-w-4xl mx-auto px-4 py-12">
                 <h2 class="text-4xl font-bold flame-text text-center mb-8">Clan Announcements</h2>
+                <div class="text-center mb-8">
+                    <p class="text-gray-400 mb-2">Live updates from Discord • Last 3 announcements</p>
+                    <button onclick="loadAnnouncements()" class="text-orange-400 hover:text-orange-300 underline text-sm">
+                        Refresh Announcements
+                    </button>
+                </div>
                 
-                <div class="space-y-6">
-                    <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-red-500 glow">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">IMPORTANT</span>
-                            <span class="text-gray-400 text-sm">Posted 2 hours ago by FireMaster99</span>
-                        </div>
-                        <h3 class="text-xl font-bold text-red-400 mb-2">Weekly Raid Event - Saturday 8PM GMT</h3>
-                        <p class="text-gray-300">Don't forget about our weekly CoX raid event this Saturday! We'll be running learner and experienced groups. Sign up in Discord #events channel. Splits will be handled fairly as always. See you there! 🔥</p>
-                    </div>
-
-                    <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-yellow-500">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="bg-yellow-600 text-white px-3 py-1 rounded-full text-sm font-bold">EVENT</span>
-                            <span class="text-gray-400 text-sm">Posted 1 day ago by BlazeRunner</span>
-                        </div>
-                        <h3 class="text-xl font-bold text-yellow-400 mb-2">Skill Competition: Firemaking Week!</h3>
-                        <p class="text-gray-300">This week's skill competition is Firemaking! Perfect for our clan theme. Prizes for top 3 gainers: 1st place gets 10M GP, 2nd gets 5M GP, 3rd gets 2M GP. Competition runs until Sunday midnight. Good luck everyone!</p>
-                    </div>
-
-                    <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-green-500">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">UPDATE</span>
-                            <span class="text-gray-400 text-sm">Posted 3 days ago by FireMaster99</span>
-                        </div>
-                        <h3 class="text-xl font-bold text-green-400 mb-2">New Clan Requirements</h3>
-                        <p class="text-gray-300">We've updated our clan requirements slightly. New members now need 1500+ total level and 100+ combat. This helps maintain our active PvM focus. Current members are not affected. Thanks for understanding!</p>
-                    </div>
-
-                    <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-blue-500">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">CELEBRATION</span>
-                            <span class="text-gray-400 text-sm">Posted 5 days ago by BlazeRunner</span>
-                        </div>
-                        <h3 class="text-xl font-bold text-blue-400 mb-2">Congratulations InfernoKing!</h3>
-                        <p class="text-gray-300">Huge congratulations to InfernoKing for completing his first Inferno cape! The dedication and practice paid off. Well deserved! 🔥👑 Next up: who's going for their first cape?</p>
+                <div id="announcementsContent">
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                        <p class="text-gray-400 mt-2">Loading announcements...</p>
                     </div>
                 </div>
             </div>
@@ -963,27 +938,7 @@
                 
                 // Step 5: Render the final display
                 hiscoresContent.innerHTML = `
-                    <!-- Debug Info (can be removed in production) -->
-                    <div class="bg-gray-900 bg-opacity-50 p-4 rounded-lg mb-6 text-xs">
-                        <h4 class="text-green-400 font-bold mb-2">✅ Debug Status - All Systems Working!</h4>
-                        <div class="grid md:grid-cols-3 gap-4 text-gray-300">
-                            <div>
-                                <p>📊 Clan Data: ✅ Loaded</p>
-                                <p>👥 Members: ${groupData.memberCount}</p>
-                                <p>🏷️ Group: ${groupData.name}</p>
-                            </div>
-                            <div>
-                                <p>📈 Weekly Gains: ${weeklyGains.length > 0 ? '✅' : '⚠️'} ${weeklyGains.length} entries</p>
-                                <p>🎉 Achievements: ${achievements.length > 0 ? '✅' : '⚠️'} ${achievements.length} entries</p>
-                                <p>🏁 Competitions: ${competitions.length > 0 ? '✅' : '⚠️'} ${competitions.length} entries</p>
-                            </div>
-                            <div>
-                                <p>🔗 API Status: ✅ Connected</p>
-                                <p>⏱️ Load Time: ${Date.now() - performance.now()}ms</p>
-                                <p>🌐 Endpoint: WiseOldMan v2</p>
-                            </div>
-                        </div>
-                    </div>
+
 
                     <!-- Weekly Stats Section -->
                     <div class="grid lg:grid-cols-3 gap-6 mb-8">
@@ -1146,31 +1101,267 @@
             }
         }
 
-        // Application form handling
-        document.getElementById('applicationForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Discord webhook URLs
+        const ANNOUNCEMENTS_WEBHOOK = 'https://discord.com/api/webhooks/1312928/6f54u6dBB2CKlPsV-Gpje_CsQ9UZkDcI31rVOMWhZhnTOahuUmjl09M5ZEJBtqV7LBak';
+        const APPLICATION_WEBHOOK = 'https://discord.com/api/webhooks/1312378/tZ9MhZAVeU3l2CLDsehDepWQSK5AW8Nxww8vSw0ZDCAesnzU0ZX3B8LIhIoqwbaxJvLJ';
+        const IMAGES_WEBHOOK = 'https://discord.com/api/webhooks/1312965/ZtGTgTDIdSMIxbOOfqnSE8Dz_Kl4sY_qg2irZv2SempMM-g_Bi1FEwmuLpUNjtJxmR0P';
+
+        // Load announcements from Discord webhook
+        async function loadAnnouncements() {
+            const announcementsContent = document.getElementById('announcementsContent');
             
-            // Get form data
-            const formData = new FormData(this);
-            const rsn = formData.get('rsn') || this.querySelector('input[placeholder="Your in-game name"]').value;
+            try {
+                announcementsContent.innerHTML = `
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                        <p class="text-gray-400 mt-2">Loading announcements...</p>
+                    </div>
+                `;
+
+                // Note: Discord webhooks don't support GET requests for reading messages
+                // This is a limitation - webhooks are only for sending, not reading
+                // You would need Discord Bot API with proper permissions to read messages
+                
+                // For now, show a message explaining this limitation
+                announcementsContent.innerHTML = `
+                    <div class="bg-yellow-900 bg-opacity-50 p-6 rounded-xl border border-yellow-500 mb-6">
+                        <h3 class="text-yellow-400 font-bold mb-2">⚠️ Discord Integration Note</h3>
+                        <p class="text-yellow-200 mb-4">Discord webhooks can only send messages, not read them. To display live announcements, you'll need:</p>
+                        <ul class="text-yellow-200 text-sm space-y-1 mb-4">
+                            <li>• A Discord Bot with message reading permissions</li>
+                            <li>• A backend server to fetch and serve the messages</li>
+                            <li>• Or use Discord's official embed widget</li>
+                        </ul>
+                        <p class="text-gray-300 text-sm">For now, applications will still be sent to Discord successfully!</p>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-red-500 glow">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <span class="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">IMPORTANT</span>
+                                <span class="text-gray-400 text-sm">Sample announcement</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-red-400 mb-2">Weekly Raid Event - Saturday 8PM GMT</h3>
+                            <p class="text-gray-300">Don't forget about our weekly CoX raid event this Saturday! We'll be running learner and experienced groups. Sign up in Discord #events channel. 🔥</p>
+                        </div>
+
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-yellow-500">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <span class="bg-yellow-600 text-white px-3 py-1 rounded-full text-sm font-bold">EVENT</span>
+                                <span class="text-gray-400 text-sm">Sample announcement</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-yellow-400 mb-2">Skill Competition: Firemaking Week!</h3>
+                            <p class="text-gray-300">This week's skill competition is Firemaking! Perfect for our clan theme. Prizes for top 3 gainers. Competition runs until Sunday midnight. Good luck everyone!</p>
+                        </div>
+
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-green-500">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <span class="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">UPDATE</span>
+                                <span class="text-gray-400 text-sm">Sample announcement</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-green-400 mb-2">New Clan Requirements</h3>
+                            <p class="text-gray-300">We've updated our clan requirements slightly. New members now need 1750+ total level and 115+ combat. This helps maintain our active PvM focus.</p>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading announcements:', error);
+                announcementsContent.innerHTML = `
+                    <div class="text-center">
+                        <p class="text-red-400">Failed to load announcements</p>
+                        <button onclick="loadAnnouncements()" class="mt-2 bg-orange-600 hover:bg-orange-500 px-4 py-2 rounded text-white">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Upload images to Discord
+        async function uploadImagesToDiscord(files, applicantName) {
+            const uploadedUrls = [];
             
-            if (!rsn) {
-                alert('Please enter your RSN (RuneScape Name)');
-                return;
+            for (const file of files) {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('content', `📸 Application images from: **${applicantName}**`);
+                    
+                    const response = await fetch(IMAGES_WEBHOOK, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        uploadedUrls.push(`✅ ${file.name} uploaded successfully`);
+                    } else {
+                        uploadedUrls.push(`❌ ${file.name} failed to upload`);
+                    }
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    uploadedUrls.push(`❌ ${file.name} failed to upload`);
+                }
             }
             
-            // Show success message
-            alert(`Application submitted successfully!\n\nThank you ${rsn} for applying to Ignite! 🔥\n\nOur leadership team will review your application within 24-48 hours. You'll be contacted via Discord with the next steps.\n\nIn the meantime, feel free to join our Discord server and introduce yourself!`);
+            return uploadedUrls;
+        }
+
+        // Application form handling with Discord integration
+        function setupApplicationForm() {
+            const form = document.getElementById('applicationForm');
+            if (!form) return;
             
-            // Reset form
-            this.reset();
-        });
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                console.log('Form submitted!');
+                
+                const submitButton = this.querySelector('button[type="submit"]');
+                const originalText = submitButton.textContent;
+                submitButton.textContent = 'Submitting...';
+                submitButton.disabled = true;
+                
+                try {
+                    // Get all form values directly by their input elements
+                    const formInputs = this.querySelectorAll('input, select, textarea');
+                    const formValues = {};
+                    
+                    formInputs.forEach((input, index) => {
+                        if (input.type === 'file') return; // Handle files separately
+                        
+                        const placeholder = input.placeholder;
+                        const value = input.value;
+                        
+                        if (placeholder === 'Your in-game name') formValues.rsn = value;
+                        else if (placeholder === '1750+') formValues.totalLevel = value;
+                        else if (placeholder === '115+') formValues.combatLevel = value;
+                        else if (placeholder === '200+') formValues.questPoints = value;
+                        else if (placeholder === '94+') formValues.magicLevel = value;
+                        else if (placeholder === '90+') formValues.rangedLevel = value;
+                        else if (placeholder === '83+') formValues.constructionLevel = value;
+                        else if (placeholder === '78+') formValues.herbloreLevel = value;
+                        else if (placeholder === 'username#1234') formValues.discordUsername = value;
+                        else if (placeholder === 'Tell us about yourself and why you\'d like to join our clan...') formValues.whyJoin = value;
+                    });
+                    
+                    // Get KC values specifically
+                    const kcInputs = this.querySelectorAll('input[placeholder="Enter KC"]');
+                    const coxKc = kcInputs[0]?.value || '0';
+                    const tobKc = kcInputs[1]?.value || '0';
+                    const toaKc = kcInputs[2]?.value || '0';
+                    
+                    // Get select values
+                    const selects = this.querySelectorAll('select');
+                    const fireCape = selects[0]?.value || 'Not specified';
+                    const augury = selects[1]?.value || 'Not specified';
+                    const piety = selects[2]?.value || 'Not specified';
+                    const rigour = selects[3]?.value || 'Not specified';
+                    const howHeard = selects[4]?.value || 'Not specified';
+                    
+                    if (!formValues.rsn) {
+                        alert('Please enter your RSN (RuneScape Name)');
+                        return;
+                    }
+                    
+                    // Handle image uploads first
+                    const imageFiles = [];
+                    const fileInputs = this.querySelectorAll('input[type="file"]');
+                    fileInputs.forEach(input => {
+                        if (input.files.length > 0) {
+                            for (let file of input.files) {
+                                imageFiles.push(file);
+                            }
+                        }
+                    });
+                    
+                    let imageUploadStatus = [];
+                    if (imageFiles.length > 0) {
+                        submitButton.textContent = 'Uploading images...';
+                        imageUploadStatus = await uploadImagesToDiscord(imageFiles, formValues.rsn);
+                    }
+                    
+                    // Calculate total raid KC
+                    const totalRaidKc = parseInt(coxKc) + parseInt(tobKc) + parseInt(toaKc);
+                    
+                    // Create Discord embed for application
+                    const embed = {
+                        title: "🔥 New Clan Application",
+                        color: 0xFF4500, // Orange color
+                        fields: [
+                            { name: "👤 RSN", value: formValues.rsn, inline: true },
+                            { name: "💬 Discord", value: formValues.discordUsername || "Not provided", inline: true },
+                            { name: "📊 Total Level", value: formValues.totalLevel || "Not provided", inline: true },
+                            { name: "⚔️ Combat Level", value: formValues.combatLevel || "Not provided", inline: true },
+                            { name: "📜 Quest Points", value: formValues.questPoints || "Not provided", inline: true },
+                            { name: "🔮 Magic Level", value: formValues.magicLevel || "Not provided", inline: true },
+                            { name: "🏹 Ranged Level", value: formValues.rangedLevel || "Not provided", inline: true },
+                            { name: "🏠 Construction", value: formValues.constructionLevel || "Not provided", inline: true },
+                            { name: "🧪 Herblore", value: formValues.herbloreLevel || "Not provided", inline: true },
+                            { name: "🔥 Fire Cape", value: fireCape, inline: true },
+                            { name: "🏛️ Chambers KC", value: coxKc, inline: true },
+                            { name: "🎭 Theatre KC", value: tobKc, inline: true },
+                            { name: "🏺 Tombs KC", value: toaKc, inline: true },
+                            { name: "🎯 Total Raid KC", value: totalRaidKc.toString(), inline: true },
+                            { name: "📿 Augury", value: augury, inline: true },
+                            { name: "⚔️ Piety", value: piety, inline: true },
+                            { name: "🏹 Rigour", value: rigour, inline: true },
+                            { name: "💭 Why join Ignite?", value: formValues.whyJoin || "Not provided", inline: false },
+                            { name: "📢 How did you hear about us?", value: howHeard, inline: false }
+                        ],
+                        footer: {
+                            text: `Application submitted at ${new Date().toLocaleString()}`
+                        }
+                    };
+                    
+                    if (imageUploadStatus.length > 0) {
+                        embed.fields.push({
+                            name: "📸 Image Upload Status",
+                            value: imageUploadStatus.join('\n'),
+                            inline: false
+                        });
+                    }
+                    
+                    // Send application to Discord
+                    submitButton.textContent = 'Sending application...';
+                    const webhookResponse = await fetch(APPLICATION_WEBHOOK, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            embeds: [embed]
+                        })
+                    });
+                    
+                    if (webhookResponse.ok) {
+                        // Show success message
+                        alert(`Application submitted successfully!\n\nThank you ${formValues.rsn} for applying to Ignite! 🔥\n\nYour application has been sent to our Discord server and our leadership team will review it within 24-48 hours. You'll be contacted via Discord with the next steps.\n\nIn the meantime, feel free to join our Discord server and introduce yourself!`);
+                        
+                        // Reset form
+                        this.reset();
+                    } else {
+                        throw new Error('Failed to send application to Discord');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error submitting application:', error);
+                    alert('There was an error submitting your application. Please try again or contact us directly on Discord.');
+                } finally {
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                }
+            });
+        }
 
         // Add some interactive effects
         document.addEventListener('DOMContentLoaded', function() {
-            // Load clan members and hiscores when page loads
+            // Load clan members, hiscores, and announcements when page loads
             loadClanMembers();
             loadHiscores();
+            loadAnnouncements();
+            
+            // Setup application form
+            setupApplicationForm();
             
             // Animate flame logo
             const logo = document.querySelector('svg');
@@ -1194,5 +1385,5 @@
             }
         }, true);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966d4a69671726c6',t:'MTc1Mzc5OTE3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966de2f2149f94ac',t:'MTc1MzgwNTQyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
