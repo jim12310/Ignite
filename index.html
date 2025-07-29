@@ -560,6 +560,88 @@
                 <div class="text-center mt-6">
                     <p class="text-gray-400 text-sm">Applications are reviewed within 24-48 hours. You'll be contacted via Discord!</p>
                 </div>
+                
+                <!-- Debug & Testing Section -->
+                <div class="mt-8 bg-gray-900 bg-opacity-50 p-6 rounded-xl border border-blue-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-blue-400 font-bold text-lg">🔧 Debug & Testing Tools</h3>
+                        <button onclick="toggleDebugSection()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-white text-sm">
+                            Toggle Debug Panel
+                        </button>
+                    </div>
+                    
+                    <div id="debugSection" class="hidden space-y-4">
+                        <!-- Webhook Test -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-blue-300 font-bold mb-3">📡 Webhook Connection Test</h4>
+                            <div class="flex space-x-3 mb-3">
+                                <button onclick="testWebhook('application')" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded text-white text-sm">
+                                    Test Application Webhook
+                                </button>
+                                <button onclick="testWebhook('admin')" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded text-white text-sm">
+                                    Test Admin Webhook
+                                </button>
+                            </div>
+                            <div id="webhookTestResults" class="text-sm bg-gray-800 p-3 rounded min-h-[100px] font-mono overflow-auto"></div>
+                        </div>
+
+                        <!-- Form Validation -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-blue-300 font-bold mb-3">✅ Real-time Form Validation</h4>
+                            <div id="formValidation" class="text-sm space-y-2">
+                                <p class="text-gray-400">Fill out the form above to see real-time validation...</p>
+                            </div>
+                        </div>
+
+                        <!-- Network Diagnostics -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-blue-300 font-bold mb-3">🌐 Network Diagnostics</h4>
+                            <button onclick="runNetworkDiagnostics()" class="bg-orange-600 hover:bg-orange-500 px-4 py-2 rounded text-white text-sm mb-3">
+                                Run Diagnostics
+                            </button>
+                            <div id="networkDiagnostics" class="text-sm bg-gray-800 p-3 rounded min-h-[80px] font-mono overflow-auto"></div>
+                        </div>
+
+                        <!-- Form Data Preview -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-blue-300 font-bold mb-3">📋 Form Data Preview</h4>
+                            <p class="text-gray-400 text-sm mb-3">This shows exactly what will be sent to Discord:</p>
+                            <div id="formDataPreview" class="text-sm bg-gray-800 p-3 rounded min-h-[100px] font-mono overflow-auto">
+                                <span class="text-gray-500">Form data will appear here as you fill it out...</span>
+                            </div>
+                        </div>
+
+                        <!-- Error Log -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-red-300 font-bold mb-3">🚨 Error Log</h4>
+                            <button onclick="clearErrorLog()" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-white text-xs mb-3">
+                                Clear Log
+                            </button>
+                            <div id="errorLog" class="text-sm bg-gray-800 p-3 rounded min-h-[80px] font-mono overflow-auto">
+                                <span class="text-gray-500">No errors logged yet...</span>
+                            </div>
+                        </div>
+
+                        <!-- Webhook URLs Display -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-green-300 font-bold mb-3">🔗 Current Webhook Configuration</h4>
+                            <div class="space-y-2 text-sm">
+                                <div>
+                                    <span class="text-green-400 font-bold">Application Webhook:</span>
+                                    <div class="bg-gray-800 p-2 rounded mt-1 font-mono text-xs break-all">
+                                        <span id="appWebhookDisplay">Loading...</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-purple-400 font-bold">Admin Webhook:</span>
+                                    <div class="bg-gray-800 p-2 rounded mt-1 font-mono text-xs break-all">
+                                        <span id="adminWebhookDisplay">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1102,8 +1184,8 @@
         }
 
         // Discord webhook URLs - Updated with working webhooks
-        const APPLICATION_WEBHOOK = 'https://discord.com/api/webhooks/1312378965/tZ9MhZAVeU3l2CLDsehDepWQSK5AW8Nxww8vSw0ZDCAesnzU0ZX3B8LIhIoqwbaxJvLJ';
-        const IMAGES_WEBHOOK = 'https://discord.com/api/webhooks/1312378965/tZ9MhZAVeU3l2CLDsehDepWQSK5AW8Nxww8vSw0ZDCAesnzU0ZX3B8LIhIoqwbaxJvLJ';
+        const APPLICATION_WEBHOOK = 'https://discord.com/api/webhooks/1312519842829549754/ZZyDaJR4Pp39mm4AVnwmz6oSTTM8VC3leiF54mNGnXbOQTZDRe_7d0nvo9P4AzKxCNaY';
+        const ADMIN_WEBHOOK = 'https://discord.com/api/webhooks/1312519842829549264/wokEy-9DqZ6LqqWXGBsmoVVwvK7EypaoJzmbFIZ5c-rOtSPq2oEUdmmUYPW9ddw-0Imz';
 
         // Load announcements from Discord webhook
         async function loadAnnouncements() {
@@ -1248,6 +1330,222 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // Debug functions
+        function logError(error, context = '') {
+            const timestamp = new Date().toLocaleTimeString();
+            const errorLog = document.getElementById('errorLog');
+            if (errorLog) {
+                const errorEntry = document.createElement('div');
+                errorEntry.className = 'text-red-300 mb-2 pb-2 border-b border-gray-700';
+                errorEntry.innerHTML = `
+                    <div class="text-xs text-gray-400">[${timestamp}] ${context}</div>
+                    <div class="text-red-400 font-bold">${error.name || 'Error'}: ${error.message}</div>
+                    ${error.stack ? `<div class="text-xs text-gray-500 mt-1">${error.stack.split('\n').slice(0, 3).join('\n')}</div>` : ''}
+                `;
+                
+                if (errorLog.querySelector('.text-gray-500')) {
+                    errorLog.innerHTML = '';
+                }
+                errorLog.appendChild(errorEntry);
+                errorLog.scrollTop = errorLog.scrollHeight;
+            }
+            console.error(`[${context}]`, error);
+        }
+
+        function toggleDebugSection() {
+            const debugSection = document.getElementById('debugSection');
+            if (debugSection.classList.contains('hidden')) {
+                debugSection.classList.remove('hidden');
+                // Initialize debug displays
+                updateWebhookDisplay();
+                setupFormValidation();
+            } else {
+                debugSection.classList.add('hidden');
+            }
+        }
+
+        function updateWebhookDisplay() {
+            const appDisplay = document.getElementById('appWebhookDisplay');
+            const adminDisplay = document.getElementById('adminWebhookDisplay');
+            
+            if (appDisplay) {
+                appDisplay.textContent = APPLICATION_WEBHOOK;
+                appDisplay.className = APPLICATION_WEBHOOK.includes('YOUR_DISCORD_WEBHOOK') ? 'text-red-400' : 'text-green-400';
+            }
+            
+            if (adminDisplay) {
+                adminDisplay.textContent = ADMIN_WEBHOOK;
+                adminDisplay.className = ADMIN_WEBHOOK.includes('YOUR_DISCORD_WEBHOOK') ? 'text-red-400' : 'text-green-400';
+            }
+        }
+
+        async function testWebhook(type) {
+            const resultsDiv = document.getElementById('webhookTestResults');
+            const webhook = type === 'application' ? APPLICATION_WEBHOOK : ADMIN_WEBHOOK;
+            const webhookName = type === 'application' ? 'Application' : 'Admin';
+            
+            resultsDiv.innerHTML = `<div class="text-yellow-400">🔄 Testing ${webhookName} webhook...</div>`;
+            
+            try {
+                const testPayload = {
+                    content: `🧪 **Webhook Test - ${webhookName}**`,
+                    embeds: [{
+                        title: "Test Message",
+                        description: `This is a test message from the ${webhookName.toLowerCase()} webhook.`,
+                        color: type === 'application' ? 16744448 : 10181046, // Orange or purple
+                        timestamp: new Date().toISOString(),
+                        fields: [
+                            { name: "Test Status", value: "✅ Connection Successful", inline: true },
+                            { name: "Timestamp", value: new Date().toLocaleString(), inline: true }
+                        ]
+                    }]
+                };
+
+                const startTime = performance.now();
+                const response = await fetch(webhook, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testPayload)
+                });
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+
+                const responseText = await response.text();
+                
+                resultsDiv.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="text-green-400">✅ ${webhookName} Webhook Test Results:</div>
+                        <div class="text-sm space-y-1">
+                            <div><span class="text-blue-300">Status:</span> ${response.status} ${response.statusText}</div>
+                            <div><span class="text-blue-300">Response Time:</span> ${responseTime}ms</div>
+                            <div><span class="text-blue-300">Headers:</span></div>
+                            <div class="ml-4 text-xs">
+                                ${[...response.headers.entries()].map(([key, value]) => `${key}: ${value}`).join('<br>')}
+                            </div>
+                            <div><span class="text-blue-300">Response Body:</span></div>
+                            <div class="ml-4 text-xs bg-gray-900 p-2 rounded">${responseText || 'Empty response'}</div>
+                        </div>
+                    </div>
+                `;
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${responseText}`);
+                }
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="text-red-400">❌ ${webhookName} Webhook Test Failed:</div>
+                        <div class="text-sm space-y-1">
+                            <div><span class="text-blue-300">Error:</span> ${error.message}</div>
+                            <div><span class="text-blue-300">Webhook URL:</span></div>
+                            <div class="ml-4 text-xs break-all">${webhook}</div>
+                        </div>
+                    </div>
+                `;
+                logError(error, `${webhookName} Webhook Test`);
+            }
+        }
+
+        async function runNetworkDiagnostics() {
+            const diagnosticsDiv = document.getElementById('networkDiagnostics');
+            diagnosticsDiv.innerHTML = '<div class="text-yellow-400">🔄 Running network diagnostics...</div>';
+            
+            const results = [];
+            
+            try {
+                // Test 1: Basic connectivity
+                results.push('🌐 Testing basic connectivity...');
+                const connectivityTest = await fetch('https://httpbin.org/get', { method: 'GET' });
+                results.push(`✅ Basic connectivity: ${connectivityTest.status} (${Math.round(performance.now())}ms)`);
+                
+                // Test 2: Discord API accessibility
+                results.push('🔗 Testing Discord API accessibility...');
+                const discordTest = await fetch('https://discord.com/api/v10/gateway', { method: 'GET' });
+                results.push(`✅ Discord API: ${discordTest.status} (accessible)`);
+                
+                // Test 3: CORS and headers
+                results.push('📋 Checking browser capabilities...');
+                results.push(`✅ User Agent: ${navigator.userAgent.substring(0, 50)}...`);
+                results.push(`✅ Online Status: ${navigator.onLine ? 'Online' : 'Offline'}`);
+                results.push(`✅ Connection: ${navigator.connection ? navigator.connection.effectiveType : 'Unknown'}`);
+                
+                // Test 4: Webhook URL validation
+                results.push('🔍 Validating webhook URLs...');
+                const appWebhookValid = APPLICATION_WEBHOOK.startsWith('https://discord.com/api/webhooks/');
+                const adminWebhookValid = ADMIN_WEBHOOK.startsWith('https://discord.com/api/webhooks/');
+                results.push(`${appWebhookValid ? '✅' : '❌'} Application webhook format: ${appWebhookValid ? 'Valid' : 'Invalid'}`);
+                results.push(`${adminWebhookValid ? '✅' : '❌'} Admin webhook format: ${adminWebhookValid ? 'Valid' : 'Invalid'}`);
+                
+            } catch (error) {
+                results.push(`❌ Network diagnostic failed: ${error.message}`);
+                logError(error, 'Network Diagnostics');
+            }
+            
+            diagnosticsDiv.innerHTML = results.map(result => `<div>${result}</div>`).join('');
+        }
+
+        function setupFormValidation() {
+            const form = document.getElementById('applicationForm');
+            if (!form) return;
+            
+            const validationDiv = document.getElementById('formValidation');
+            const previewDiv = document.getElementById('formDataPreview');
+            
+            function validateAndPreview() {
+                const formData = new FormData(form);
+                const validation = [];
+                const preview = {};
+                
+                // Get all form inputs
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    if (input.type === 'file') return;
+                    
+                    const value = input.value.trim();
+                    const name = input.placeholder || input.name || 'Unknown field';
+                    
+                    if (input.hasAttribute('required')) {
+                        if (!value) {
+                            validation.push(`❌ ${name}: Required field is empty`);
+                        } else {
+                            validation.push(`✅ ${name}: Valid`);
+                        }
+                    }
+                    
+                    if (value) {
+                        preview[name] = value;
+                    }
+                });
+                
+                // Update validation display
+                validationDiv.innerHTML = validation.length > 0 
+                    ? validation.map(v => `<div class="text-sm">${v}</div>`).join('')
+                    : '<p class="text-gray-400">No validation results yet...</p>';
+                
+                // Update preview display
+                previewDiv.innerHTML = Object.keys(preview).length > 0
+                    ? `<pre class="text-xs">${JSON.stringify(preview, null, 2)}</pre>`
+                    : '<span class="text-gray-500">Form data will appear here as you fill it out...</span>';
+            }
+            
+            // Add event listeners to all form inputs
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', validateAndPreview);
+                input.addEventListener('change', validateAndPreview);
+            });
+        }
+
+        function clearErrorLog() {
+            const errorLog = document.getElementById('errorLog');
+            if (errorLog) {
+                errorLog.innerHTML = '<span class="text-gray-500">No errors logged yet...</span>';
+            }
+        }
+
         // Upload images to Discord
         async function uploadImagesToDiscord(files, applicantName) {
             const uploadedUrls = [];
@@ -1258,7 +1556,7 @@
                     formData.append('file', file);
                     formData.append('content', `📸 Application images from: **${applicantName}**`);
                     
-                    const response = await fetch(IMAGES_WEBHOOK, {
+                    const response = await fetch(ADMIN_WEBHOOK, {
                         method: 'POST',
                         body: formData
                     });
@@ -1267,10 +1565,12 @@
                         uploadedUrls.push(`✅ ${file.name} uploaded successfully`);
                     } else {
                         uploadedUrls.push(`❌ ${file.name} failed to upload`);
+                        logError(new Error(`Upload failed: ${response.status}`), `Image Upload - ${file.name}`);
                     }
                 } catch (error) {
                     console.error('Error uploading image:', error);
                     uploadedUrls.push(`❌ ${file.name} failed to upload`);
+                    logError(error, `Image Upload - ${file.name}`);
                 }
             }
             
@@ -1417,13 +1717,34 @@
                     
                 } catch (error) {
                     console.error('Detailed error submitting application:', error);
+                    logError(error, 'Application Submission');
                     
-                    // Show detailed error to user
+                    // Show user-friendly error message
                     let errorMessage = 'There was an error submitting your application:\n\n';
-                    errorMessage += error.message + '\n\n';
-                    errorMessage += 'Please check the browser console (F12) for more details, or contact us directly on Discord.';
                     
-                    alert(errorMessage);
+                    if (error.message.includes('404') || error.message.includes('Unknown Webhook')) {
+                        errorMessage += '❌ Discord webhook not set up correctly.\n\n';
+                        errorMessage += 'The website admin needs to:\n';
+                        errorMessage += '1. Create a Discord webhook in server settings\n';
+                        errorMessage += '2. Replace the webhook URL in the code\n\n';
+                        errorMessage += 'Please contact the clan leadership directly on Discord for now.';
+                    } else if (error.message.includes('Failed to fetch') || error.message.includes('network')) {
+                        errorMessage += '🌐 Network connection issue.\n\n';
+                        errorMessage += 'Please check your internet connection and try again.';
+                    } else {
+                        errorMessage += error.message + '\n\n';
+                        errorMessage += 'Please try again or contact us directly on Discord.';
+                    }
+                    
+                    // Also show debug panel if not already visible
+                    const debugSection = document.getElementById('debugSection');
+                    if (debugSection && debugSection.classList.contains('hidden')) {
+                        debugSection.classList.remove('hidden');
+                        updateWebhookDisplay();
+                        setupFormValidation();
+                    }
+                    
+                    alert(errorMessage + '\n\n💡 Check the Debug Panel below for detailed error information.');
                 } finally {
                     submitButton.textContent = originalText;
                     submitButton.disabled = false;
@@ -1463,5 +1784,5 @@
             }
         }, true);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966e0c61c4348a91',t:'MTc1MzgwNzEyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966e18f8b024d8b6',t:'MTc1MzgwNzY0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
