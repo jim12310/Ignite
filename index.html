@@ -1178,6 +1178,77 @@
             }
         }
 
+        // Show thank you page after successful submission
+        function showThankYouPage(rsn) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.add('hidden'));
+            
+            // Create and show thank you page
+            const thankYouSection = document.createElement('div');
+            thankYouSection.id = 'thankYou';
+            thankYouSection.className = 'section';
+            thankYouSection.innerHTML = `
+                <div class="max-w-4xl mx-auto px-4 py-12 text-center">
+                    <div class="bg-black bg-opacity-50 p-12 rounded-xl border border-green-500 glow">
+                        <div class="mb-8">
+                            <div class="text-6xl mb-4">🔥</div>
+                            <h2 class="text-5xl font-bold flame-text mb-6">Thank You!</h2>
+                            <h3 class="text-2xl text-green-400 mb-4">Application Submitted Successfully</h3>
+                        </div>
+                        
+                        <div class="bg-green-900 bg-opacity-30 p-6 rounded-lg border border-green-500 mb-8">
+                            <p class="text-green-200 text-lg mb-4">
+                                <span class="font-bold">${rsn}</span>, your application to join Ignite has been sent to our Discord server! 🎉
+                            </p>
+                            <div class="text-green-300 space-y-2">
+                                <p>✅ Application received and logged</p>
+                                <p>✅ Screenshots uploaded to our review channel</p>
+                                <p>✅ Leadership team has been notified</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-900 bg-opacity-30 p-6 rounded-lg border border-blue-500 mb-8">
+                            <h4 class="text-blue-400 font-bold text-xl mb-3">What happens next?</h4>
+                            <div class="text-blue-200 space-y-2 text-left max-w-2xl mx-auto">
+                                <p>📋 Our leadership team will review your application within <span class="font-bold">24-48 hours</span></p>
+                                <p>💬 You'll be contacted via Discord with the next steps</p>
+                                <p>🎮 If accepted, you'll receive an in-game clan invite</p>
+                                <p>🔥 Welcome to the Ignite family!</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <button onclick="showSection('welcome')" class="flame-gradient px-8 py-4 rounded-lg text-white font-bold text-lg hover:scale-105 transition-all glow mr-4">
+                                🏠 Return to Homepage
+                            </button>
+                            <a href="https://discord.gg/mK8pUe3F5t" target="_blank" class="inline-block bg-indigo-600 hover:bg-indigo-500 px-8 py-4 rounded-lg text-white font-bold text-lg transition-all glow">
+                                💬 Join Our Discord
+                            </a>
+                        </div>
+                        
+                        <div class="mt-8 text-gray-400 text-sm">
+                            <p>Questions? Contact us on Discord or reach out to our leadership team.</p>
+                            <p class="mt-2">Application ID: APP-${Date.now()}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add to page and show
+            document.querySelector('.pt-20').appendChild(thankYouSection);
+            
+            // Update navigation to highlight home
+            const navButtons = document.querySelectorAll('nav button');
+            navButtons.forEach(button => {
+                button.classList.remove('bg-orange-600', 'hover:bg-orange-500');
+                button.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            });
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         // Upload images to Discord
         async function uploadImagesToDiscord(files, applicantName) {
             const uploadedUrls = [];
@@ -1334,11 +1405,8 @@
                     });
                     
                     if (webhookResponse.ok) {
-                        // Show success message
-                        alert(`Application submitted successfully!\n\nThank you ${formValues.rsn} for applying to Ignite! 🔥\n\nYour application has been sent to our Discord server and our leadership team will review it within 24-48 hours. You'll be contacted via Discord with the next steps.\n\nIn the meantime, feel free to join our Discord server and introduce yourself!`);
-                        
-                        // Reset form
-                        this.reset();
+                        // Show thank you page
+                        showThankYouPage(formValues.rsn);
                     } else {
                         throw new Error('Failed to send application to Discord');
                     }
@@ -1385,5 +1453,5 @@
             }
         }, true);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966de2f2149f94ac',t:'MTc1MzgwNTQyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966df374d3118a91',t:'MTc1MzgwNjEwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
