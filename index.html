@@ -1103,8 +1103,8 @@
 
         // Discord webhook URLs
         const ANNOUNCEMENTS_WEBHOOK = 'https://discord.com/api/webhooks/1312928/6f54u6dBB2CKlPsV-Gpje_CsQ9UZkDcI31rVOMWhZhnTOahuUmjl09M5ZEJBtqV7LBak';
-        const APPLICATION_WEBHOOK = 'https://discord.com/api/webhooks/1312378/tZ9MhZAVeU3l2CLDsehDepWQSK5AW8Nxww8vSw0ZDCAesnzU0ZX3B8LIhIoqwbaxJvLJ';
-        const IMAGES_WEBHOOK = 'https://discord.com/api/webhooks/1312965/ZtGTgTDIdSMIxbOOfqnSE8Dz_Kl4sY_qg2irZv2SempMM-g_Bi1FEwmuLpUNjtJxmR0P';
+        const APPLICATION_WEBHOOK = 'https://discord.com/api/webhooks/1313754/ZZyDaJR4Pp39mm4AVnwmz6oSTTM8VC3leiF54mNGnXbOQTZDRe_7d0nvo9P4AzKxCNaY';
+        const IMAGES_WEBHOOK = 'https://discord.com/api/webhooks/1313264/wokEy-9DqZ6LqqWXGBsmoVVwvK7EypaoJzmbFIZ5c-rOtSPq2oEUdmmUYPW9ddw-0Imz';
 
         // Load announcements from Discord webhook
         async function loadAnnouncements() {
@@ -1334,32 +1334,19 @@
                         return;
                     }
                     
-                    // Handle image uploads first
-                    const imageFiles = [];
-                    const fileInputs = this.querySelectorAll('input[type="file"]');
-                    fileInputs.forEach(input => {
-                        if (input.files.length > 0) {
-                            for (let file of input.files) {
-                                imageFiles.push(file);
-                            }
-                        }
-                    });
-                    
-                    let imageUploadStatus = [];
-                    if (imageFiles.length > 0) {
-                        submitButton.textContent = 'Uploading images...';
-                        imageUploadStatus = await uploadImagesToDiscord(imageFiles, formValues.rsn);
-                    }
+                    // Skip image uploads for now to test basic form submission
+                    console.log('Skipping image uploads for testing...');
                     
                     // Calculate total raid KC
                     const totalRaidKc = parseInt(coxKc) + parseInt(tobKc) + parseInt(toaKc);
                     
-                    // Create Discord embed for application
+                    // Create Discord embed for application - simplified version
                     const embed = {
                         title: "🔥 New Clan Application",
-                        color: 0xFF4500, // Orange color
+                        color: 16744448, // Orange color in decimal
+                        description: `New application from **${formValues.rsn}**`,
                         fields: [
-                            { name: "👤 RSN", value: formValues.rsn, inline: true },
+                            { name: "👤 RSN", value: formValues.rsn || "Not provided", inline: true },
                             { name: "💬 Discord", value: formValues.discordUsername || "Not provided", inline: true },
                             { name: "📊 Total Level", value: formValues.totalLevel || "Not provided", inline: true },
                             { name: "⚔️ Combat Level", value: formValues.combatLevel || "Not provided", inline: true },
@@ -1375,45 +1362,69 @@
                             { name: "🎯 Total Raid KC", value: totalRaidKc.toString(), inline: true },
                             { name: "📿 Augury", value: augury, inline: true },
                             { name: "⚔️ Piety", value: piety, inline: true },
-                            { name: "🏹 Rigour", value: rigour, inline: true },
-                            { name: "💭 Why join Ignite?", value: formValues.whyJoin || "Not provided", inline: false },
-                            { name: "📢 How did you hear about us?", value: howHeard, inline: false }
+                            { name: "🏹 Rigour", value: rigour, inline: true }
                         ],
-                        footer: {
-                            text: `Application submitted at ${new Date().toLocaleString()}`
-                        }
+                        timestamp: new Date().toISOString()
                     };
                     
-                    if (imageUploadStatus.length > 0) {
+                    // Add longer text fields separately to avoid field limits
+                    if (formValues.whyJoin && formValues.whyJoin.trim()) {
                         embed.fields.push({
-                            name: "📸 Image Upload Status",
-                            value: imageUploadStatus.join('\n'),
+                            name: "💭 Why join Ignite?",
+                            value: formValues.whyJoin.substring(0, 1024), // Discord field limit
                             inline: false
                         });
                     }
                     
-                    // Send application to Discord
+                    if (howHeard && howHeard !== 'Select an option') {
+                        embed.fields.push({
+                            name: "📢 How did you hear about us?",
+                            value: howHeard,
+                            inline: false
+                        });
+                    }
+                    
+                    // Test webhook with detailed logging
+                    console.log('Sending to webhook:', APPLICATION_WEBHOOK);
+                    console.log('Payload:', JSON.stringify({ embeds: [embed] }, null, 2));
+                    
                     submitButton.textContent = 'Sending application...';
+                    
                     const webhookResponse = await fetch(APPLICATION_WEBHOOK, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
+                            content: `🔥 **New Clan Application Received!**`,
                             embeds: [embed]
                         })
                     });
                     
-                    if (webhookResponse.ok) {
-                        // Show thank you page
-                        showThankYouPage(formValues.rsn);
-                    } else {
-                        throw new Error('Failed to send application to Discord');
+                    console.log('Webhook response status:', webhookResponse.status);
+                    console.log('Webhook response headers:', [...webhookResponse.headers.entries()]);
+                    
+                    if (!webhookResponse.ok) {
+                        const errorText = await webhookResponse.text();
+                        console.error('Webhook error response:', errorText);
+                        throw new Error(`Discord webhook failed: ${webhookResponse.status} - ${errorText}`);
                     }
                     
+                    const responseData = await webhookResponse.text();
+                    console.log('Webhook success response:', responseData);
+                    
+                    // Show thank you page
+                    showThankYouPage(formValues.rsn);
+                    
                 } catch (error) {
-                    console.error('Error submitting application:', error);
-                    alert('There was an error submitting your application. Please try again or contact us directly on Discord.');
+                    console.error('Detailed error submitting application:', error);
+                    
+                    // Show detailed error to user
+                    let errorMessage = 'There was an error submitting your application:\n\n';
+                    errorMessage += error.message + '\n\n';
+                    errorMessage += 'Please check the browser console (F12) for more details, or contact us directly on Discord.';
+                    
+                    alert(errorMessage);
                 } finally {
                     submitButton.textContent = originalText;
                     submitButton.disabled = false;
@@ -1453,5 +1464,5 @@
             }
         }, true);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966df374d3118a91',t:'MTc1MzgwNjEwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966e06e5e2898a91',t:'MTc1MzgwNjkwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
