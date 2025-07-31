@@ -561,6 +561,286 @@
                     <p class="text-gray-400 text-sm">Applications are reviewed within 24-48 hours. You'll be contacted via Discord!</p>
                 </div>
                 
+                <!-- Backend Server Setup Instructions -->
+                <div class="mt-8 bg-blue-900 bg-opacity-50 p-6 rounded-xl border border-blue-500">
+                    <h3 class="text-blue-400 font-bold text-lg mb-4">🖥️ Backend Server Setup (Recommended)</h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-blue-300 font-bold mb-2">📦 Why Use a Backend Server?</h4>
+                            <ul class="text-blue-200 space-y-1 list-disc list-inside">
+                                <li><strong>File Uploads:</strong> Screenshots are automatically uploaded to Discord</li>
+                                <li><strong>Better Organization:</strong> Text and images sent to separate channels</li>
+                                <li><strong>Enhanced Security:</strong> Webhook URLs hidden from frontend</li>
+                                <li><strong>Advanced Features:</strong> Database logging, email notifications, etc.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-green-300 font-bold mb-2">🚀 Quick Setup Instructions:</h4>
+                            <ol class="text-green-200 space-y-2 list-decimal list-inside text-xs">
+                                <li>Create a new folder for your server: <code class="bg-gray-800 px-1 rounded">mkdir ignite-server</code></li>
+                                <li>Navigate to the folder: <code class="bg-gray-800 px-1 rounded">cd ignite-server</code></li>
+                                <li>Initialize npm: <code class="bg-gray-800 px-1 rounded">npm init -y</code></li>
+                                <li>Install dependencies: <code class="bg-gray-800 px-1 rounded">npm install express multer form-data node-fetch</code></li>
+                                <li>Create <code class="bg-gray-800 px-1 rounded">server.js</code> file with the code below</li>
+                                <li>Update webhook URLs in server.js</li>
+                                <li>Run the server: <code class="bg-gray-800 px-1 rounded">node server.js</code></li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-yellow-300 font-bold mb-2">📝 Complete server.js Code:</h4>
+                            <div class="bg-gray-900 p-3 rounded text-xs overflow-x-auto">
+                                <pre class="text-green-300"><code>const express = require('express');
+const multer = require('multer');
+const FormData = require('form-data');
+const fetch = require('node-fetch');
+const fs = require('fs');
+const cors = require('cors');
+
+const app = express();
+
+// Enable CORS for your website
+app.use(cors({
+    origin: ['http://localhost:3000', 'https://your-website.com'],
+    credentials: true
+}));
+
+// Configure multer for file uploads
+const upload = multer({ 
+    dest: 'uploads/',
+    limits: {
+        fileSize: 8 * 1024 * 1024, // 8MB limit
+        files: 10 // Max 10 files
+    }
+});
+
+// Your Discord webhook URLs - UPDATE THESE!
+const TEXT_WEBHOOK_URL = 'https://discord.com/api/webhooks/1312519842829549754/ZZyDaJR4Pp39mm4AVnwmz6oSTTM8VC3leiF54mNGnXbOQTZDRe_7d0nvo9P4AzKxCNaY';
+const IMAGE_WEBHOOK_URL = 'https://discord.com/api/webhooks/1312519842829549264/wokEy-9DqZ6LqqWXGBsmoVVwvK7EypaoJzmbFIZ5c-rOtSPq2oEUdmmUYPW9ddw-0Imz';
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Handle clan application submission
+app.post('/submit-application', upload.array('images', 10), async (req, res) => {
+    try {
+        console.log('📋 New application received:', req.body.rsn);
+        
+        const {
+            rsn, discordUsername, totalLevel, combatLevel, questPoints,
+            magicLevel, rangedLevel, constructionLevel, herbloreLevel,
+            fireCape, coxKc, tobKc, toaKc, totalRaidKc,
+            augury, piety, rigour, whyJoin, howHeard
+        } = req.body;
+        
+        const uploadedFiles = req.files || [];
+        console.log(`📸 ${uploadedFiles.length} files uploaded`);
+
+        // Create Discord embed for application
+        const embed = {
+            title: "🔥 New Ignite Clan Application",
+            color: 16744448, // Orange
+            description: `New application from **${rsn}**\\n\\n**Application ID:** APP-${Date.now()}`,
+            fields: [
+                { name: "👤 RSN", value: rsn || "Not provided", inline: true },
+                { name: "💬 Discord", value: discordUsername || "Not provided", inline: true },
+                { name: "📊 Total Level", value: totalLevel || "Not provided", inline: true },
+                { name: "⚔️ Combat Level", value: combatLevel || "Not provided", inline: true },
+                { name: "📜 Quest Points", value: questPoints || "Not provided", inline: true },
+                { name: "🔮 Magic Level", value: magicLevel || "Not provided", inline: true },
+                { name: "🏹 Ranged Level", value: rangedLevel || "Not provided", inline: true },
+                { name: "🏠 Construction", value: constructionLevel || "Not provided", inline: true },
+                { name: "🧪 Herblore", value: herbloreLevel || "Not provided", inline: true },
+                { name: "🔥 Fire Cape", value: fireCape || "Not specified", inline: true },
+                { name: "🏛️ Chambers KC", value: coxKc || "0", inline: true },
+                { name: "🎭 Theatre KC", value: tobKc || "0", inline: true },
+                { name: "🏺 Tombs KC", value: toaKc || "0", inline: true },
+                { name: "🎯 Total Raid KC", value: totalRaidKc || "0", inline: true },
+                { name: "📿 Augury", value: augury || "Not specified", inline: true },
+                { name: "⚔️ Piety", value: piety || "Not specified", inline: true },
+                { name: "🏹 Rigour", value: rigour || "Not specified", inline: true }
+            ],
+            footer: {
+                text: "Ignite Clan Application • React with ✅ to approve, ❌ to deny",
+                icon_url: "https://imgur.com/u2cvtkN.png"
+            },
+            timestamp: new Date().toISOString()
+        };
+
+        // Add longer text fields
+        if (whyJoin && whyJoin.trim()) {
+            embed.fields.push({
+                name: "💭 Why join Ignite?",
+                value: whyJoin.substring(0, 1024),
+                inline: false
+            });
+        }
+
+        if (howHeard && howHeard !== 'Select an option') {
+            embed.fields.push({
+                name: "📢 How did you hear about us?",
+                value: howHeard,
+                inline: false
+            });
+        }
+
+        if (uploadedFiles.length > 0) {
+            embed.fields.push({
+                name: "📸 Screenshots",
+                value: `${uploadedFiles.length} files uploaded - check images channel`,
+                inline: false
+            });
+        }
+
+        // Send application text to Discord
+        console.log('📤 Sending application to Discord...');
+        const textResponse = await fetch(TEXT_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                content: `🔥 **New Clan Application Received!**`,
+                embeds: [embed]
+            })
+        });
+
+        if (!textResponse.ok) {
+            throw new Error(`Text webhook failed: ${textResponse.status}`);
+        }
+
+        // Send images to Discord if any were uploaded
+        if (uploadedFiles.length > 0) {
+            console.log('📸 Uploading images to Discord...');
+            
+            for (const file of uploadedFiles) {
+                try {
+                    const form = new FormData();
+                    form.append('file', fs.createReadStream(file.path), file.originalname);
+                    form.append('payload_json', JSON.stringify({
+                        content: `**📸 Screenshot from ${rsn}'s application**\\n*${file.originalname}*`,
+                        username: 'Ignite Applications'
+                    }));
+
+                    const imageResponse = await fetch(IMAGE_WEBHOOK_URL, {
+                        method: 'POST',
+                        body: form
+                    });
+
+                    if (imageResponse.ok) {
+                        console.log(`✅ Uploaded: ${file.originalname}`);
+                    } else {
+                        console.error(`❌ Failed to upload: ${file.originalname}`);
+                    }
+
+                    // Clean up uploaded file
+                    fs.unlinkSync(file.path);
+                } catch (fileError) {
+                    console.error(`Error uploading ${file.originalname}:`, fileError);
+                    // Clean up file even if upload failed
+                    try { fs.unlinkSync(file.path); } catch {}
+                }
+            }
+        }
+
+        console.log('✅ Application processed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Application submitted successfully!',
+            filesUploaded: uploadedFiles.length
+        });
+
+    } catch (error) {
+        console.error('❌ Error processing application:', error);
+        
+        // Clean up any uploaded files on error
+        if (req.files) {
+            req.files.forEach(file => {
+                try { fs.unlinkSync(file.path); } catch {}
+            });
+        }
+        
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to submit application: ' + error.message 
+        });
+    }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🔥 Ignite Clan Server running on port ${PORT}`);
+    console.log(`📡 Health check: http://localhost:${PORT}/health`);
+});</code></pre>
+                            </div>
+                            <p class="text-yellow-200 text-xs mt-2">
+                                <span class="font-bold">📝 Note:</span> Don't forget to install cors: 
+                                <code class="bg-gray-800 px-1 rounded">npm install cors</code>
+                            </p>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-orange-300 font-bold mb-2">⚙️ Server Configuration:</h4>
+                            <div class="text-orange-200 space-y-2 text-xs">
+                                <p><strong>Text Webhook:</strong> For application details (main channel)</p>
+                                <p><strong>Image Webhook:</strong> For screenshots (separate channel or same)</p>
+                                <p><strong>Port:</strong> Default 3000 (change BACKEND_URL if different)</p>
+                                <p><strong>File Limit:</strong> 8MB per file (Discord's limit)</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-900 bg-opacity-50 p-4 rounded-lg border border-yellow-500">
+                            <p class="text-yellow-200 text-xs">
+                                <span class="font-bold">💡 Fallback Mode:</span> If the backend server is not running, 
+                                the form will automatically fall back to direct webhook submission (without file uploads).
+                            </p>
+                        </div>
+                        
+                        <div class="bg-green-900 bg-opacity-50 p-4 rounded-lg border border-green-500">
+                            <h4 class="text-green-300 font-bold mb-2">🌐 Deployment Options:</h4>
+                            <ul class="text-green-200 space-y-1 list-disc list-inside text-xs">
+                                <li><strong>Local:</strong> Run on your computer (localhost:3000)</li>
+                                <li><strong>VPS:</strong> Deploy to a virtual private server</li>
+                                <li><strong>Heroku:</strong> Free cloud hosting (with some limitations)</li>
+                                <li><strong>Railway/Render:</strong> Modern cloud platforms</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Webhook Setup Instructions -->
+                <div class="mt-8 bg-purple-900 bg-opacity-50 p-6 rounded-xl border border-purple-500">
+                    <h3 class="text-purple-400 font-bold text-lg mb-4">🤖 Discord Webhook Setup</h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-purple-300 font-bold mb-2">📋 How to Create Discord Webhooks:</h4>
+                            <ol class="text-purple-200 space-y-2 list-decimal list-inside">
+                                <li>In your Discord server, go to <strong>Server Settings → Integrations → Webhooks</strong></li>
+                                <li>Click <strong>"New Webhook"</strong></li>
+                                <li>Set name to "Ignite Applications" and choose your channel</li>
+                                <li>Click <strong>"Copy Webhook URL"</strong></li>
+                                <li>Create a second webhook for images (optional - can use same)</li>
+                                <li>Update the webhook URLs in your server.js file</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-green-300 font-bold mb-2">📁 Recommended Channel Setup:</h4>
+                            <ul class="text-green-200 space-y-1 list-disc list-inside">
+                                <li><strong>#applications:</strong> Main application text and embeds</li>
+                                <li><strong>#app-screenshots:</strong> Uploaded images and files</li>
+                                <li><strong>#app-admin:</strong> Admin notifications and logs</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Debug & Testing Section -->
                 <div class="mt-8 bg-gray-900 bg-opacity-50 p-6 rounded-xl border border-blue-500">
                     <div class="flex items-center justify-between mb-4">
@@ -1183,7 +1463,10 @@
             }
         }
 
-        // Discord webhook URLs - Updated with working webhooks
+        // Backend server configuration
+        const BACKEND_URL = 'http://localhost:3000'; // Change this to your server URL when deployed
+        
+        // Direct webhook URLs (for testing)
         const APPLICATION_WEBHOOK = 'https://discord.com/api/webhooks/1312519842829549754/ZZyDaJR4Pp39mm4AVnwmz6oSTTM8VC3leiF54mNGnXbOQTZDRe_7d0nvo9P4AzKxCNaY';
         const ADMIN_WEBHOOK = 'https://discord.com/api/webhooks/1312519842829549264/wokEy-9DqZ6LqqWXGBsmoVVwvK7EypaoJzmbFIZ5c-rOtSPq2oEUdmmUYPW9ddw-0Imz';
 
@@ -1387,64 +1670,353 @@
             resultsDiv.innerHTML = `<div class="text-yellow-400">🔄 Testing ${webhookName} webhook...</div>`;
             
             try {
-                const testPayload = {
-                    content: `🧪 **Webhook Test - ${webhookName}**`,
-                    embeds: [{
-                        title: "Test Message",
-                        description: `This is a test message from the ${webhookName.toLowerCase()} webhook.`,
-                        color: type === 'application' ? 16744448 : 10181046, // Orange or purple
-                        timestamp: new Date().toISOString(),
-                        fields: [
-                            { name: "Test Status", value: "✅ Connection Successful", inline: true },
-                            { name: "Timestamp", value: new Date().toLocaleString(), inline: true }
-                        ]
-                    }]
+                // Step 1: Enhanced URL validation with detailed breakdown
+                resultsDiv.innerHTML += `<div class="text-blue-300">🔍 Analyzing webhook URL structure...</div>`;
+                
+                if (!webhook.startsWith('https://discord.com/api/webhooks/')) {
+                    throw new Error('Invalid webhook URL format - must start with https://discord.com/api/webhooks/');
+                }
+                
+                const urlParts = webhook.split('/');
+                if (urlParts.length < 7) {
+                    throw new Error('Webhook URL appears incomplete - missing webhook ID or token');
+                }
+                
+                const webhookId = urlParts[5];
+                const webhookToken = urlParts[6];
+                
+                // Enhanced validation
+                resultsDiv.innerHTML += `<div class="text-gray-300 text-xs">Full URL: ${webhook}</div>`;
+                resultsDiv.innerHTML += `<div class="text-gray-300 text-xs">URL Parts: ${urlParts.length} segments</div>`;
+                resultsDiv.innerHTML += `<div class="text-gray-300 text-xs">Webhook ID: ${webhookId} (${webhookId.length} chars)</div>`;
+                resultsDiv.innerHTML += `<div class="text-gray-300 text-xs">Token: ${webhookToken.substring(0, 10)}... (${webhookToken.length} chars)</div>`;
+                
+                // Check for common issues
+                if (webhookId.length < 17 || webhookId.length > 20) {
+                    resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ Webhook ID length unusual: ${webhookId.length} chars (expected 17-20)</div>`;
+                }
+                
+                if (webhookToken.length < 60 || webhookToken.length > 70) {
+                    resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ Token length unusual: ${webhookToken.length} chars (expected 60-70)</div>`;
+                }
+                
+                // Check for invalid characters
+                const validIdPattern = /^[0-9]+$/;
+                const validTokenPattern = /^[A-Za-z0-9_-]+$/;
+                
+                if (!validIdPattern.test(webhookId)) {
+                    resultsDiv.innerHTML += `<div class="text-red-300">❌ Webhook ID contains invalid characters (should be numbers only)</div>`;
+                }
+                
+                if (!validTokenPattern.test(webhookToken)) {
+                    resultsDiv.innerHTML += `<div class="text-red-300">❌ Token contains invalid characters</div>`;
+                }
+                
+                resultsDiv.innerHTML += `<div class="text-green-300">✅ URL format validation complete</div>`;
+                
+                // Step 2: Test Discord API connectivity first
+                resultsDiv.innerHTML += `<div class="text-blue-300">🌐 Testing Discord API connectivity...</div>`;
+                
+                try {
+                    const apiTest = await fetch('https://discord.com/api/v10/gateway', {
+                        method: 'GET',
+                        headers: {
+                            'User-Agent': 'IgniteClanWebsite/1.0'
+                        }
+                    });
+                    
+                    if (apiTest.ok) {
+                        resultsDiv.innerHTML += `<div class="text-green-300">✅ Discord API accessible (${apiTest.status})</div>`;
+                    } else {
+                        resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ Discord API returned ${apiTest.status}</div>`;
+                    }
+                } catch (apiError) {
+                    resultsDiv.innerHTML += `<div class="text-red-300">❌ Cannot reach Discord API: ${apiError.message}</div>`;
+                }
+                
+                // Step 3: Test webhook existence with GET request (this will fail but gives us info)
+                resultsDiv.innerHTML += `<div class="text-blue-300">🔍 Checking webhook existence...</div>`;
+                
+                try {
+                    const getResponse = await fetch(webhook, {
+                        method: 'GET',
+                        headers: {
+                            'User-Agent': 'IgniteClanWebsite/1.0'
+                        }
+                    });
+                    
+                    const getResponseText = await getResponse.text();
+                    resultsDiv.innerHTML += `<div class="text-gray-300 text-xs">GET Response: ${getResponse.status} - ${getResponseText}</div>`;
+                    
+                    if (getResponse.status === 405) {
+                        resultsDiv.innerHTML += `<div class="text-green-300">✅ Webhook exists (405 Method Not Allowed is expected)</div>`;
+                    } else if (getResponse.status === 404) {
+                        resultsDiv.innerHTML += `<div class="text-red-300">❌ Webhook not found (404) - webhook was deleted or URL is wrong</div>`;
+                        
+                        // Enhanced 404 diagnosis
+                        resultsDiv.innerHTML += `<div class="text-yellow-300 text-xs mt-2">🔍 404 Error Analysis:</div>`;
+                        resultsDiv.innerHTML += `<div class="text-yellow-300 text-xs">• Webhook ID: ${webhookId}</div>`;
+                        resultsDiv.innerHTML += `<div class="text-yellow-300 text-xs">• Token (first 10): ${webhookToken.substring(0, 10)}...</div>`;
+                        
+                        // Check if it's a permission issue
+                        if (getResponseText.includes('Unknown Webhook') || getResponseText.includes('10015')) {
+                            resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">🚨 "Unknown Webhook" error detected!</div>`;
+                            resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">This usually means:</div>`;
+                            resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">• Webhook was deleted from Discord</div>`;
+                            resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">• Channel permissions changed</div>`;
+                            resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">• Webhook URL is corrupted</div>`;
+                        }
+                        
+                    } else if (getResponse.status === 401) {
+                        resultsDiv.innerHTML += `<div class="text-red-300">❌ Unauthorized (401) - token is invalid</div>`;
+                    } else if (getResponse.status === 403) {
+                        resultsDiv.innerHTML += `<div class="text-red-300">❌ Forbidden (403) - Permission denied!</div>`;
+                        resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">🔒 This could be a channel permission issue!</div>`;
+                    }
+                } catch (getError) {
+                    resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ GET test failed: ${getError.message}</div>`;
+                }
+                
+                // Step 4: Test with minimal payload
+                resultsDiv.innerHTML += `<div class="text-blue-300">📤 Testing POST with minimal payload...</div>`;
+                
+                const minimalPayload = {
+                    content: `🧪 Test from Ignite Clan Website - ${new Date().toLocaleTimeString()}`
                 };
 
                 const startTime = performance.now();
+                
+                console.log('🔗 Testing webhook:', webhook);
+                console.log('📦 Payload:', JSON.stringify(minimalPayload, null, 2));
+                
                 const response = await fetch(webhook, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'User-Agent': 'IgniteClanWebsite/1.0'
                     },
-                    body: JSON.stringify(testPayload)
+                    body: JSON.stringify(minimalPayload)
                 });
+                
                 const endTime = performance.now();
                 const responseTime = Math.round(endTime - startTime);
-
-                const responseText = await response.text();
                 
-                resultsDiv.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="text-green-400">✅ ${webhookName} Webhook Test Results:</div>
-                        <div class="text-sm space-y-1">
-                            <div><span class="text-blue-300">Status:</span> ${response.status} ${response.statusText}</div>
-                            <div><span class="text-blue-300">Response Time:</span> ${responseTime}ms</div>
-                            <div><span class="text-blue-300">Headers:</span></div>
-                            <div class="ml-4 text-xs">
-                                ${[...response.headers.entries()].map(([key, value]) => `${key}: ${value}`).join('<br>')}
+                console.log('📊 Response status:', response.status);
+                console.log('📊 Response headers:', [...response.headers.entries()]);
+                
+                // Get response text
+                let responseText = '';
+                try {
+                    responseText = await response.text();
+                    console.log('📝 Response body:', responseText);
+                } catch (e) {
+                    console.log('⚠️ Could not read response body:', e);
+                    responseText = 'Could not read response body';
+                }
+                
+                // Step 5: Analyze response with enhanced diagnostics
+                if (response.ok) {
+                    // Success case
+                    resultsDiv.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="text-green-400">✅ ${webhookName} Webhook Test SUCCESSFUL!</div>
+                            <div class="text-sm space-y-1">
+                                <div><span class="text-green-300">Status:</span> ${response.status} ${response.statusText}</div>
+                                <div><span class="text-green-300">Response Time:</span> ${responseTime}ms</div>
+                                <div><span class="text-green-300">Message:</span> Test message should appear in your Discord server</div>
+                                <div class="mt-2 p-2 bg-green-900 bg-opacity-30 rounded border border-green-500">
+                                    <div class="text-green-200 text-xs">🎉 Webhook is working correctly!</div>
+                                    <div class="text-green-200 text-xs">Check your Discord server for the test message.</div>
+                                </div>
                             </div>
-                            <div><span class="text-blue-300">Response Body:</span></div>
-                            <div class="ml-4 text-xs bg-gray-900 p-2 rounded">${responseText || 'Empty response'}</div>
                         </div>
-                    </div>
-                `;
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${responseText}`);
+                    `;
+                    
+                    // Now test with full embed
+                    setTimeout(async () => {
+                        try {
+                            resultsDiv.innerHTML += `<div class="text-blue-300 mt-4">🎨 Testing with full embed...</div>`;
+                            
+                            const fullPayload = {
+                                content: `🔥 **Full Embed Test - ${webhookName}**`,
+                                embeds: [{
+                                    title: "🧪 Advanced Webhook Test",
+                                    description: `This is a full embed test from the ${webhookName.toLowerCase()} webhook.`,
+                                    color: type === 'application' ? 16744448 : 10181046,
+                                    timestamp: new Date().toISOString(),
+                                    fields: [
+                                        { name: "Test Status", value: "✅ Full Embed Working", inline: true },
+                                        { name: "Timestamp", value: new Date().toLocaleString(), inline: true },
+                                        { name: "Webhook Type", value: webhookName, inline: true }
+                                    ],
+                                    footer: {
+                                        text: "Ignite Clan Website Test"
+                                    }
+                                }]
+                            };
+                            
+                            const embedResponse = await fetch(webhook, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(fullPayload)
+                            });
+                            
+                            if (embedResponse.ok) {
+                                resultsDiv.innerHTML += `<div class="text-green-300">✅ Full embed test successful!</div>`;
+                            } else {
+                                const embedError = await embedResponse.text();
+                                resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ Embed test failed: ${embedResponse.status} - ${embedError}</div>`;
+                            }
+                        } catch (embedError) {
+                            resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ Embed test error: ${embedError.message}</div>`;
+                        }
+                    }, 2000);
+                    
+                } else {
+                    // Error case - provide enhanced diagnosis
+                    let diagnosis = '';
+                    let solution = '';
+                    let specificHelp = '';
+                    
+                    switch (response.status) {
+                        case 400:
+                            diagnosis = 'Bad Request - The payload format is invalid';
+                            solution = 'Check that the JSON payload is properly formatted';
+                            break;
+                        case 401:
+                            diagnosis = 'Unauthorized - Invalid webhook token';
+                            solution = 'The webhook token in the URL is invalid or expired';
+                            specificHelp = `
+                                <div class="mt-2 p-2 bg-yellow-900 bg-opacity-50 rounded border border-yellow-500">
+                                    <div class="text-yellow-200 text-xs font-bold">🔧 How to fix 401 error:</div>
+                                    <div class="text-yellow-200 text-xs mt-1">1. Go to Discord Server Settings → Integrations → Webhooks</div>
+                                    <div class="text-yellow-200 text-xs">2. Find your webhook and click "Copy Webhook URL"</div>
+                                    <div class="text-yellow-200 text-xs">3. Replace the entire webhook URL in the code</div>
+                                    <div class="text-yellow-200 text-xs">4. Make sure you copy the FULL URL including the token</div>
+                                </div>
+                            `;
+                            break;
+                        case 404:
+                            diagnosis = 'Not Found - Webhook doesn\'t exist or was deleted';
+                            solution = 'The webhook was deleted or the URL is incorrect';
+                            specificHelp = `
+                                <div class="mt-2 p-2 bg-red-900 bg-opacity-50 rounded border border-red-500">
+                                    <div class="text-red-200 text-xs font-bold">🚨 404 Error - Webhook Missing!</div>
+                                    <div class="text-red-200 text-xs mt-1">This means Discord cannot find the webhook.</div>
+                                    <div class="text-red-200 text-xs font-bold mt-2">Most Common Causes:</div>
+                                    <div class="text-red-200 text-xs">• Webhook was deleted from Discord server</div>
+                                    <div class="text-red-200 text-xs">• Channel permissions changed (channel locked/restricted)</div>
+                                    <div class="text-red-200 text-xs">• Wrong webhook URL copied</div>
+                                    <div class="text-red-200 text-xs">• Webhook ID or token is corrupted</div>
+                                    <div class="text-red-200 text-xs font-bold mt-2">🔒 Channel Permission Issues:</div>
+                                    <div class="text-red-200 text-xs">If the channel is locked or has restricted permissions:</div>
+                                    <div class="text-red-200 text-xs">• The webhook might still exist but be inaccessible</div>
+                                    <div class="text-red-200 text-xs">• Discord returns 404 instead of 403 for security</div>
+                                    <div class="text-red-200 text-xs">• Check if the channel has "Send Messages" permission for @everyone</div>
+                                    <div class="text-red-200 text-xs font-bold mt-2">Solution:</div>
+                                    <div class="text-red-200 text-xs">1. Check channel permissions first (unlock if needed)</div>
+                                    <div class="text-red-200 text-xs">2. Go to Discord Server Settings → Integrations</div>
+                                    <div class="text-red-200 text-xs">3. Delete the old webhook and create a NEW one</div>
+                                    <div class="text-red-200 text-xs">4. Copy the new webhook URL completely</div>
+                                    <div class="text-red-200 text-xs">5. Replace the webhook URL in the code</div>
+                                    <div class="text-red-200 text-xs">6. Ensure the target channel allows webhook messages</div>
+                                </div>
+                            `;
+                            break;
+                        case 429:
+                            diagnosis = 'Rate Limited - Too many requests';
+                            solution = 'Wait a few minutes before testing again';
+                            break;
+                        case 500:
+                        case 502:
+                        case 503:
+                            diagnosis = 'Discord server error';
+                            solution = 'Try again in a few minutes - this is a Discord issue';
+                            break;
+                        default:
+                            diagnosis = `HTTP ${response.status} error`;
+                            solution = 'Check Discord server status and webhook configuration';
+                    }
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="text-red-400">❌ ${webhookName} Webhook Test FAILED</div>
+                            <div class="text-sm space-y-1">
+                                <div><span class="text-red-300">Status:</span> ${response.status} ${response.statusText}</div>
+                                <div><span class="text-red-300">Response Time:</span> ${responseTime}ms</div>
+                                <div><span class="text-red-300">Diagnosis:</span> ${diagnosis}</div>
+                                <div><span class="text-red-300">Solution:</span> ${solution}</div>
+                            </div>
+                            <div class="mt-2 p-2 bg-red-900 bg-opacity-30 rounded border border-red-500">
+                                <div class="text-red-200 text-xs font-bold">Discord Response:</div>
+                                <div class="text-red-200 text-xs mt-1">${responseText || 'No response body'}</div>
+                            </div>
+                            <div class="mt-2 p-2 bg-gray-900 bg-opacity-50 rounded border border-gray-600">
+                                <div class="text-gray-300 text-xs font-bold">Webhook Analysis:</div>
+                                <div class="text-gray-300 text-xs mt-1">ID: ${webhookId}</div>
+                                <div class="text-gray-300 text-xs">Token: ${webhookToken.substring(0, 10)}...${webhookToken.slice(-5)}</div>
+                                <div class="text-gray-300 text-xs">Full URL: ${webhook}</div>
+                            </div>
+                            ${specificHelp}
+                        </div>
+                    `;
+                    
+                    throw new Error(`${diagnosis}: ${responseText}`);
                 }
 
             } catch (error) {
-                resultsDiv.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="text-red-400">❌ ${webhookName} Webhook Test Failed:</div>
-                        <div class="text-sm space-y-1">
-                            <div><span class="text-blue-300">Error:</span> ${error.message}</div>
-                            <div><span class="text-blue-300">Webhook URL:</span></div>
-                            <div class="ml-4 text-xs break-all">${webhook}</div>
+                console.error('🚨 Webhook test error:', error);
+                
+                if (!resultsDiv.innerHTML.includes('FAILED')) {
+                    let errorType = 'Unknown Error';
+                    let troubleshooting = '';
+                    
+                    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                        errorType = 'Network Connection Error';
+                        troubleshooting = `
+                            <div class="text-yellow-200 text-xs mt-2">
+                                <div class="font-bold">Possible causes:</div>
+                                <div>• Internet connection issues</div>
+                                <div>• Browser blocking the request (CORS/security)</div>
+                                <div>• Discord API temporarily unavailable</div>
+                                <div>• Firewall or network restrictions</div>
+                                <div class="font-bold mt-2">Try:</div>
+                                <div>• Refresh the page and test again</div>
+                                <div>• Try from a different browser or device</div>
+                                <div>• Check if Discord is down: discordstatus.com</div>
+                            </div>
+                        `;
+                    } else if (error.message.includes('Invalid webhook URL')) {
+                        errorType = 'Invalid Webhook Configuration';
+                        troubleshooting = `
+                            <div class="text-yellow-200 text-xs mt-2">
+                                <div class="font-bold">How to fix:</div>
+                                <div>1. Go to your Discord server settings</div>
+                                <div>2. Navigate to Integrations → Webhooks</div>
+                                <div>3. Create a new webhook or copy existing URL</div>
+                                <div>4. Replace the webhook URL in the code</div>
+                            </div>
+                        `;
+                    }
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="text-red-400">❌ ${webhookName} Webhook Test FAILED</div>
+                            <div class="text-sm space-y-1">
+                                <div><span class="text-red-300">Error Type:</span> ${errorType}</div>
+                                <div><span class="text-red-300">Details:</span> ${error.message}</div>
+                            </div>
+                            <div class="mt-2 p-2 bg-red-900 bg-opacity-30 rounded border border-red-500">
+                                <div class="text-red-200 text-xs font-bold">Full Error:</div>
+                                <div class="text-red-200 text-xs mt-1 font-mono">${error.stack || error.message}</div>
+                            </div>
+                            ${troubleshooting}
                         </div>
-                    </div>
-                `;
+                    `;
+                }
+                
                 logError(error, `${webhookName} Webhook Test`);
             }
         }
@@ -1633,84 +2205,139 @@
                         return;
                     }
                     
-                    // Skip image uploads for now to test basic form submission
-                    console.log('Skipping image uploads for testing...');
-                    
                     // Calculate total raid KC
                     const totalRaidKc = parseInt(coxKc) + parseInt(tobKc) + parseInt(toaKc);
                     
-                    // Create Discord embed for application - simplified version
-                    const embed = {
-                        title: "🔥 New Clan Application",
-                        color: 16744448, // Orange color in decimal
-                        description: `New application from **${formValues.rsn}**`,
-                        fields: [
-                            { name: "👤 RSN", value: formValues.rsn || "Not provided", inline: true },
-                            { name: "💬 Discord", value: formValues.discordUsername || "Not provided", inline: true },
-                            { name: "📊 Total Level", value: formValues.totalLevel || "Not provided", inline: true },
-                            { name: "⚔️ Combat Level", value: formValues.combatLevel || "Not provided", inline: true },
-                            { name: "📜 Quest Points", value: formValues.questPoints || "Not provided", inline: true },
-                            { name: "🔮 Magic Level", value: formValues.magicLevel || "Not provided", inline: true },
-                            { name: "🏹 Ranged Level", value: formValues.rangedLevel || "Not provided", inline: true },
-                            { name: "🏠 Construction", value: formValues.constructionLevel || "Not provided", inline: true },
-                            { name: "🧪 Herblore", value: formValues.herbloreLevel || "Not provided", inline: true },
-                            { name: "🔥 Fire Cape", value: fireCape, inline: true },
-                            { name: "🏛️ Chambers KC", value: coxKc, inline: true },
-                            { name: "🎭 Theatre KC", value: tobKc, inline: true },
-                            { name: "🏺 Tombs KC", value: toaKc, inline: true },
-                            { name: "🎯 Total Raid KC", value: totalRaidKc.toString(), inline: true },
-                            { name: "📿 Augury", value: augury, inline: true },
-                            { name: "⚔️ Piety", value: piety, inline: true },
-                            { name: "🏹 Rigour", value: rigour, inline: true }
-                        ],
-                        timestamp: new Date().toISOString()
-                    };
+                    // Collect all file inputs
+                    const fileInputs = this.querySelectorAll('input[type="file"]');
+                    const formData = new FormData();
                     
-                    // Add longer text fields separately to avoid field limits
-                    if (formValues.whyJoin && formValues.whyJoin.trim()) {
-                        embed.fields.push({
-                            name: "💭 Why join Ignite?",
-                            value: formValues.whyJoin.substring(0, 1024), // Discord field limit
-                            inline: false
-                        });
-                    }
+                    // Add all form data
+                    formData.append('rsn', formValues.rsn);
+                    formData.append('discordUsername', formValues.discordUsername);
+                    formData.append('totalLevel', formValues.totalLevel);
+                    formData.append('combatLevel', formValues.combatLevel);
+                    formData.append('questPoints', formValues.questPoints);
+                    formData.append('magicLevel', formValues.magicLevel);
+                    formData.append('rangedLevel', formValues.rangedLevel);
+                    formData.append('constructionLevel', formValues.constructionLevel);
+                    formData.append('herbloreLevel', formValues.herbloreLevel);
+                    formData.append('fireCape', fireCape);
+                    formData.append('coxKc', coxKc);
+                    formData.append('tobKc', tobKc);
+                    formData.append('toaKc', toaKc);
+                    formData.append('totalRaidKc', totalRaidKc);
+                    formData.append('augury', augury);
+                    formData.append('piety', piety);
+                    formData.append('rigour', rigour);
+                    formData.append('whyJoin', formValues.whyJoin || '');
+                    formData.append('howHeard', howHeard);
                     
-                    if (howHeard && howHeard !== 'Select an option') {
-                        embed.fields.push({
-                            name: "📢 How did you hear about us?",
-                            value: howHeard,
-                            inline: false
-                        });
-                    }
-                    
-                    // Test webhook with detailed logging
-                    console.log('Sending to webhook:', APPLICATION_WEBHOOK);
-                    console.log('Payload:', JSON.stringify({ embeds: [embed] }, null, 2));
-                    
-                    submitButton.textContent = 'Sending application...';
-                    
-                    const webhookResponse = await fetch(APPLICATION_WEBHOOK, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            content: `🔥 **New Clan Application Received!**`,
-                            embeds: [embed]
-                        })
+                    // Add all uploaded files
+                    let totalFiles = 0;
+                    fileInputs.forEach((input, index) => {
+                        if (input.files && input.files.length > 0) {
+                            for (let i = 0; i < input.files.length; i++) {
+                                formData.append('images', input.files[i]);
+                                totalFiles++;
+                            }
+                        }
                     });
                     
-                    console.log('Webhook response status:', webhookResponse.status);
-                    console.log('Webhook response headers:', [...webhookResponse.headers.entries()]);
+                    console.log(`Submitting application with ${totalFiles} files to backend server...`);
+                    submitButton.textContent = `Uploading ${totalFiles} files...`;
                     
-                    if (!webhookResponse.ok) {
-                        const errorText = await webhookResponse.text();
-                        console.error('Webhook error response:', errorText);
-                        throw new Error(`Discord webhook failed: ${webhookResponse.status} - ${errorText}`);
+                    // Try backend server first, fallback to direct webhook
+                    let response;
+                    try {
+                        response = await fetch(`${BACKEND_URL}/submit-application`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Backend server error: ${response.status}`);
+                        }
+                        
+                        const result = await response.json();
+                        console.log('Backend server response:', result);
+                        
+                    } catch (backendError) {
+                        console.warn('Backend server unavailable, falling back to direct webhook:', backendError.message);
+                        
+                        // Fallback to direct webhook (without file uploads)
+                        submitButton.textContent = 'Sending via direct webhook...';
+                        
+                        const embed = {
+                            title: "🔥 New Clan Application",
+                            color: 16744448,
+                            description: `New application from **${formValues.rsn}**\n\n**Application ID:** APP-${Date.now()}`,
+                            fields: [
+                                { name: "👤 RSN", value: formValues.rsn || "Not provided", inline: true },
+                                { name: "💬 Discord", value: formValues.discordUsername || "Not provided", inline: true },
+                                { name: "📊 Total Level", value: formValues.totalLevel || "Not provided", inline: true },
+                                { name: "⚔️ Combat Level", value: formValues.combatLevel || "Not provided", inline: true },
+                                { name: "📜 Quest Points", value: formValues.questPoints || "Not provided", inline: true },
+                                { name: "🔮 Magic Level", value: formValues.magicLevel || "Not provided", inline: true },
+                                { name: "🏹 Ranged Level", value: formValues.rangedLevel || "Not provided", inline: true },
+                                { name: "🏠 Construction", value: formValues.constructionLevel || "Not provided", inline: true },
+                                { name: "🧪 Herblore", value: formValues.herbloreLevel || "Not provided", inline: true },
+                                { name: "🔥 Fire Cape", value: fireCape, inline: true },
+                                { name: "🏛️ Chambers KC", value: coxKc, inline: true },
+                                { name: "🎭 Theatre KC", value: tobKc, inline: true },
+                                { name: "🏺 Tombs KC", value: toaKc, inline: true },
+                                { name: "🎯 Total Raid KC", value: totalRaidKc.toString(), inline: true },
+                                { name: "📿 Augury", value: augury, inline: true },
+                                { name: "⚔️ Piety", value: piety, inline: true },
+                                { name: "🏹 Rigour", value: rigour, inline: true }
+                            ],
+                            footer: {
+                                text: "Ignite Clan Application • React with ✅ to approve, ❌ to deny",
+                                icon_url: "https://imgur.com/u2cvtkN.png"
+                            },
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        if (formValues.whyJoin && formValues.whyJoin.trim()) {
+                            embed.fields.push({
+                                name: "💭 Why join Ignite?",
+                                value: formValues.whyJoin.substring(0, 1024),
+                                inline: false
+                            });
+                        }
+                        
+                        if (howHeard && howHeard !== 'Select an option') {
+                            embed.fields.push({
+                                name: "📢 How did you hear about us?",
+                                value: howHeard,
+                                inline: false
+                            });
+                        }
+                        
+                        if (totalFiles > 0) {
+                            embed.fields.push({
+                                name: "📸 Screenshots",
+                                value: `⚠️ ${totalFiles} files were uploaded but could not be sent (backend server required for file uploads)`,
+                                inline: false
+                            });
+                        }
+                        
+                        response = await fetch(APPLICATION_WEBHOOK, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                content: `🔥 **New Clan Application Received!**`,
+                                embeds: [embed]
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(`Discord webhook failed: ${response.status} - ${errorText}`);
+                        }
                     }
-                    
-                    const responseData = await webhookResponse.text();
-                    console.log('Webhook success response:', responseData);
                     
                     // Show thank you page
                     showThankYouPage(formValues.rsn);
@@ -1784,5 +2411,5 @@
             }
         }, true);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966e18f8b024d8b6',t:'MTc1MzgwNzY0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'967cdf9d27ffccf4',t:'MTc1Mzk2MjU3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
