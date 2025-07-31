@@ -1,278 +1,2415 @@
-// Fixed webhook URLs - These are your current URLs from the code
-const APPLICATION_WEBHOOK = 'https://discord.com/api/webhooks/1312519842829549754/ZZyDaJR4Pp39mm4AVnwmz6oSTTM8VC3leiF54mNGnXbOQTZDRe_7d0nvo9P4AzKxCNaY';
-const ADMIN_WEBHOOK = 'https://discord.com/api/webhooks/1312519842829549264/wokEy-9DqZ6LqqWXGBsmoVVwvK7EypaoJzmbFIZ5c-rOtSPq2oEUdmmUYPW9ddw-0Imz';
-
-// Improved application form handler
-function setupApplicationForm() {
-    const form = document.getElementById('applicationForm');
-    if (!form) {
-        console.error('❌ Application form not found!');
-        return;
-    }
-    
-    console.log('✅ Application form found, setting up handler...');
-    
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        console.log('🔥 Form submitted - starting processing...');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ignite Clan - OSRS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
-        const submitButton = this.querySelector('button[type="submit"]');
-        const originalText = submitButton.textContent;
-        submitButton.textContent = 'Submitting...';
-        submitButton.disabled = true;
-        
-        try {
-            // Collect form data by input names/IDs rather than placeholders
-            const inputs = this.querySelectorAll('input, select, textarea');
-            const data = {};
-            
-            inputs.forEach((input, index) => {
-                const value = input.value ? input.value.trim() : '';
-                const placeholder = input.placeholder || '';
-                
-                // Map inputs by their position and placeholder for better reliability
-                if (placeholder.includes('in-game name') || placeholder === 'Your in-game name') {
-                    data.rsn = value;
-                } else if (placeholder === '1750+') {
-                    data.totalLevel = value;
-                } else if (placeholder === '115+') {
-                    data.combatLevel = value;
-                } else if (placeholder === '200+') {
-                    data.questPoints = value;
-                } else if (placeholder === '94+') {
-                    data.magicLevel = value;
-                } else if (placeholder === '90+') {
-                    data.rangedLevel = value;
-                } else if (placeholder === '83+') {
-                    data.constructionLevel = value;
-                } else if (placeholder === '78+') {
-                    data.herbloreLevel = value;
-                } else if (placeholder.includes('username#1234') || placeholder.includes('Discord')) {
-                    data.discordUsername = value;
-                } else if (placeholder.includes('Tell us about yourself')) {
-                    data.whyJoin = value;
-                }
-            });
-            
-            // Get KC values from the specific KC inputs
-            const kcInputs = this.querySelectorAll('input[placeholder="Enter KC"]');
-            const coxKc = kcInputs[0]?.value || '0';
-            const tobKc = kcInputs[1]?.value || '0';
-            const toaKc = kcInputs[2]?.value || '0';
-            const totalRaidKc = parseInt(coxKc) + parseInt(tobKc) + parseInt(toaKc);
-            
-            // Get select values
-            const selects = this.querySelectorAll('select');
-            const fireCape = selects[0]?.value || 'Not specified';
-            const augury = selects[1]?.value || 'Not specified';
-            const piety = selects[2]?.value || 'Not specified';
-            const rigour = selects[3]?.value || 'Not specified';
-            const howHeard = selects[4]?.value || 'Not specified';
-            
-            console.log('📋 Collected form data:', {
-                rsn: data.rsn,
-                discord: data.discordUsername,
-                totalLevel: data.totalLevel,
-                combatLevel: data.combatLevel,
-                totalRaidKc: totalRaidKc
-            });
-            
-            // Validate required fields
-            if (!data.rsn) {
-                throw new Error('Please enter your RSN (RuneScape Name)');
-            }
-            if (!data.discordUsername) {
-                throw new Error('Please enter your Discord username');
-            }
-            if (!data.totalLevel) {
-                throw new Error('Please enter your total level');
-            }
-            if (!data.combatLevel) {
-                throw new Error('Please enter your combat level');
-            }
-            
-            // Create Discord embed with proper error handling
-            const embed = {
-                title: "🔥 New Clan Application",
-                color: 16744448, // Orange color in decimal
-                description: `New application from **${data.rsn}**`,
-                fields: [
-                    { name: "👤 RSN", value: data.rsn, inline: true },
-                    { name: "💬 Discord", value: data.discordUsername, inline: true },
-                    { name: "📊 Total Level", value: data.totalLevel || "Not provided", inline: true },
-                    { name: "⚔️ Combat Level", value: data.combatLevel || "Not provided", inline: true },
-                    { name: "📜 Quest Points", value: data.questPoints || "Not provided", inline: true },
-                    { name: "🔮 Magic Level", value: data.magicLevel || "Not provided", inline: true },
-                    { name: "🏹 Ranged Level", value: data.rangedLevel || "Not provided", inline: true },
-                    { name: "🏠 Construction", value: data.constructionLevel || "Not provided", inline: true },
-                    { name: "🧪 Herblore", value: data.herbloreLevel || "Not provided", inline: true },
-                    { name: "🔥 Fire Cape", value: fireCape, inline: true },
-                    { name: "🏛️ Chambers KC", value: coxKc, inline: true },
-                    { name: "🎭 Theatre KC", value: tobKc, inline: true },
-                    { name: "🏺 Tombs KC", value: toaKc, inline: true },
-                    { name: "🎯 Total Raid KC", value: totalRaidKc.toString(), inline: true },
-                    { name: "📿 Augury", value: augury, inline: true },
-                    { name: "⚔️ Piety", value: piety, inline: true },
-                    { name: "🏹 Rigour", value: rigour, inline: true }
-                ],
-                timestamp: new Date().toISOString(),
-                footer: {
-                    text: "Ignite Clan Application System"
-                }
-            };
-            
-            // Add optional longer fields
-            if (data.whyJoin && data.whyJoin.trim()) {
-                embed.fields.push({
-                    name: "💭 Why join Ignite?",
-                    value: data.whyJoin.substring(0, 1024), // Discord field limit
-                    inline: false
-                });
-            }
-            
-            if (howHeard && howHeard !== 'Select an option') {
-                embed.fields.push({
-                    name: "📢 How did you hear about us?",
-                    value: howHeard,
-                    inline: false
-                });
-            }
-            
-            const payload = {
-                content: "🔥 **New Clan Application Received!**",
-                embeds: [embed]
-            };
-            
-            console.log('📡 Sending to Discord webhook...');
-            console.log('🔗 Webhook URL (first 50 chars):', APPLICATION_WEBHOOK.substring(0, 50) + '...');
-            
-            // Send to Discord with detailed error handling
-            const response = await fetch(APPLICATION_WEBHOOK, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload)
-            });
-            
-            console.log('📊 Discord response status:', response.status);
-            console.log('📊 Discord response headers:', [...response.headers.entries()]);
-            
-            // Get response text for debugging
-            const responseText = await response.text();
-            console.log('📄 Discord response body:', responseText);
-            
-            if (!response.ok) {
-                console.error('❌ Discord webhook error:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    body: responseText
-                });
-                
-                let errorMessage = `Discord webhook failed: ${response.status} ${response.statusText}`;
-                
-                if (response.status === 404) {
-                    errorMessage = 'Webhook not found (404). The webhook URL may be incorrect or the webhook was deleted from Discord.';
-                } else if (response.status === 401 || response.status === 403) {
-                    errorMessage = 'Webhook authentication failed. Please check the webhook URL is correct.';
-                } else if (response.status === 429) {
-                    errorMessage = 'Rate limited. Please wait a moment and try again.';
-                }
-                
-                throw new Error(errorMessage + '\n\nResponse: ' + responseText);
-            }
-            
-            console.log('✅ Application sent successfully to Discord!');
-            
-            // Show success message
-            alert('🎉 Application submitted successfully!\n\nYour application has been sent to our Discord server. You should receive a response within 24-48 hours.');
-            
-            // Show thank you page
-            showThankYouPage(data.rsn);
-            
-        } catch (error) {
-            console.error('💥 Error submitting application:', error);
-            
-            // Log error details for debugging
-            if (error.name) console.error('Error name:', error.name);
-            if (error.stack) console.error('Error stack:', error.stack);
-            
-            let userErrorMessage = 'There was an error submitting your application:\n\n';
-            
-            if (error.message.includes('404') || error.message.includes('Unknown Webhook')) {
-                userErrorMessage += '❌ Webhook configuration error.\n\n';
-                userErrorMessage += 'The Discord webhook may not be set up correctly. ';
-                userErrorMessage += 'Please contact the clan leadership directly on Discord:\n';
-                userErrorMessage += 'https://discord.gg/mK8pUe3F5t';
-            } else if (error.message.includes('Failed to fetch') || error.message.includes('network')) {
-                userErrorMessage += '🌐 Network connection issue.\n\n';
-                userErrorMessage += 'Please check your internet connection and try again. ';
-                userErrorMessage += 'If the problem persists, try refreshing the page.';
-            } else if (error.message.includes('Please enter')) {
-                userErrorMessage += '📝 Form validation error:\n\n' + error.message;
-            } else {
-                userErrorMessage += error.message + '\n\n';
-                userErrorMessage += 'If this problem continues, please contact us directly on Discord:\n';
-                userErrorMessage += 'https://discord.gg/mK8pUe3F5t';
-            }
-            
-            alert(userErrorMessage);
-            
-        } finally {
-            submitButton.textContent = originalText;
-            submitButton.disabled = false;
+        .flame-gradient {
+            background: linear-gradient(45deg, #ff4500, #ff6b35, #ff8c42, #ffa500);
         }
-    });
-}
+        
+        .dark-bg {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.5);
+        }
+        
+        .flame-text {
+            background: linear-gradient(45deg, #ff4500, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-item:hover {
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        
+        .member-card:hover {
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+        
+        .stats-bar {
+            background: linear-gradient(90deg, #ff4500, #ffa500);
+            height: 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="dark-bg text-white font-sans">
+    <!-- Navigation -->
+    <nav class="bg-black bg-opacity-50 backdrop-blur-md fixed w-full top-0 z-50 border-b border-orange-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <!-- Ignite Clan Logo -->
+                    <img src="https://imgur.com/u2cvtkN.png" alt="Ignite Clan Logo" width="40" height="40" class="glow rounded-lg">
+                    <h1 class="text-2xl font-bold flame-text">IGNITE</h1>
+                </div>
+                <div class="flex space-x-6">
+                    <button onclick="showSection('welcome')" class="nav-item px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 transition-all">Welcome</button>
+                    <button onclick="showSection('members')" class="nav-item px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-all">Members</button>
+                    <button onclick="showSection('hiscores')" class="nav-item px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-all">Hiscores</button>
+                    <button onclick="showSection('announcements')" class="nav-item px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-all">Announcements</button>
+                    <button onclick="showSection('apply')" class="nav-item px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition-all">Apply</button>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-// Test webhook function for debugging
-async function testWebhookConnection() {
-    console.log('🧪 Testing webhook connection...');
-    
+    <!-- Main Content -->
+    <div class="pt-20 min-h-screen">
+        <!-- Welcome Section -->
+        <div id="welcome" class="section">
+            <div class="max-w-6xl mx-auto px-4 py-12">
+                <div class="text-center mb-12">
+                    <h2 class="text-5xl font-bold flame-text mb-6" style="line-height: 1.2;">Welcome to Ignite!</h2>
+                    <p class="text-xl text-gray-300 max-w-3xl mx-auto mb-4">
+                        Please change your discord name to your in-game name
+                    </p>
+                </div>
+                
+                <!-- About Us Section -->
+                <div class="bg-black bg-opacity-40 p-8 rounded-xl border border-orange-500 glow mb-8">
+                    <h3 class="text-3xl font-bold text-orange-400 mb-4">About Us</h3>
+                    <p class="text-gray-300 text-lg leading-relaxed mb-4">
+                        Ignite was formed by a group of dedicated players who stayed connected after our previous clan disbanded. Our goal is to create a fun, welcoming space where both ironmen and mains can enjoy PvM. At Ignite, the focus is on having a great time with friends while progressing together.
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-6 mt-6">
+                        <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-orange-400 font-bold mb-2">🌍 Timezone</h4>
+                            <p class="text-gray-300">Predominantly Europe</p>
+                        </div>
+                        <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-orange-400 font-bold mb-2">🏠 Home World</h4>
+                            <p class="text-gray-300">522</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- What We're Looking For -->
+                <div class="bg-black bg-opacity-40 p-8 rounded-xl border border-orange-500 glow mb-8">
+                    <h3 class="text-3xl font-bold text-orange-400 mb-4">What We're Looking For</h3>
+                    <p class="text-gray-300 text-lg leading-relaxed">
+                        We're looking for members who love to PvM and want to share that passion with others in a friendly and active community. You'll find opportunities to participate in regular events, including PvM mass events and exciting bingo competitions!
+                    </p>
+                </div>
+
+                <!-- Leadership Team -->
+                <div class="bg-black bg-opacity-40 p-8 rounded-xl border border-orange-500 glow mb-8">
+                    <h3 class="text-3xl font-bold text-orange-400 mb-6">Leadership Team</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-red-400 font-bold text-xl mb-3">👑 Owner</h4>
+                            <p class="text-gray-300 text-lg">@Freddi</p>
+                        </div>
+                        <div>
+                            <h4 class="text-purple-400 font-bold text-xl mb-3">⚡ Admins</h4>
+                            <div class="space-y-1 text-gray-300">
+                                <p>@Portaloo</p>
+                                <p>@Deserve</p>
+                                <p>@Rocka</p>
+                                <p>@Rddrz</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Requirements Section -->
+                <div class="bg-black bg-opacity-40 p-8 rounded-xl border border-red-500 glow mb-8">
+                    <h3 class="text-3xl font-bold text-red-400 mb-6">📋 Clan Requirements</h3>
+                    
+                    <!-- Skill & Combat Requirements -->
+                    <div class="grid md:grid-cols-2 gap-8 mb-8">
+                        <div>
+                            <h4 class="text-xl font-bold text-orange-400 mb-4">🎯 Skill Requirements</h4>
+                            <div class="space-y-2 text-gray-300">
+                                <p>• <span class="text-yellow-400 font-bold">Total Level:</span> 1750+</p>
+                                <p>• <span class="text-red-400 font-bold">Combat Level:</span> 115+</p>
+                                <p>• <span class="text-green-400 font-bold">Quest Points:</span> 200+</p>
+                                <p>• <span class="text-blue-400 font-bold">Magic:</span> 94+</p>
+                                <p>• <span class="text-purple-400 font-bold">Ranged:</span> 90+</p>
+                                <p>• <span class="text-cyan-400 font-bold">Construction:</span> 83+</p>
+                                <p>• <span class="text-pink-400 font-bold">Herblore:</span> 78+</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-orange-400 mb-4">⚔️ PvM Requirements</h4>
+                            <div class="space-y-2 text-gray-300">
+                                <p>• <span class="text-indigo-400 font-bold">Combined Raids KC:</span> 50+</p>
+                                <p class="text-sm text-gray-400 ml-4">(TOA + TOB + Chambers)</p>
+                                <p>• <span class="text-orange-400 font-bold">Augury:</span> Unlocked</p>
+                                <p>• <span class="text-yellow-400 font-bold">Piety:</span> Unlocked</p>
+                                <p>• <span class="text-green-400 font-bold">Rigour:</span> Unlocked</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Equipment Requirements -->
+                    <div class="mb-8">
+                        <h4 class="text-2xl font-bold text-red-400 mb-6">⚔️ Equipment Requirements</h4>
+                        
+                        <div class="grid lg:grid-cols-3 gap-6 mb-6">
+                            <!-- Melee Equipment -->
+                            <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
+                                <h5 class="text-lg font-bold text-red-400 mb-3">⚔️ Melee Equipment</h5>
+                                <div class="space-y-1 text-sm text-gray-300">
+                                    <p>• BGS or DWH or Elder Maul</p>
+                                    <p>• Fire Cape or Infernal Cape</p>
+                                    <p>• Bandos Chestplate & Tassets</p>
+                                    <p>• Torture, Berserker Ring</p>
+                                    <p>• Scythe or Fang or DHL</p>
+                                </div>
+                            </div>
+
+                            <!-- Range Equipment -->
+                            <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
+                                <h5 class="text-lg font-bold text-green-400 mb-3">🏹 Range Equipment</h5>
+                                <div class="space-y-1 text-sm text-gray-300">
+                                    <p>• Crystal Armour</p>
+                                    <p>• Necklace of Anguish</p>
+                                    <p>• Ava's Device</p>
+                                    <p>• BOFA or Twisted Bow</p>
+                                </div>
+                            </div>
+
+                            <!-- Mage Equipment -->
+                            <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
+                                <h5 class="text-lg font-bold text-blue-400 mb-3">🔮 Mage Equipment</h5>
+                                <div class="space-y-1 text-sm text-gray-300">
+                                    <p>• God Cape 2</p>
+                                    <p>• Tormented Bracelet</p>
+                                    <p>• Ahrim's Top & Skirt</p>
+                                    <p>• Occult Necklace</p>
+                                    <p>• Toxic Trident or Sang or Shadow</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Untradable Equipment -->
+                        <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
+                            <h5 class="text-lg font-bold text-purple-400 mb-3">🏆 Untradable Equipment</h5>
+                            <div class="grid md:grid-cols-2 gap-4 text-sm text-gray-300">
+                                <div class="space-y-1">
+                                    <p>• Full Elite Void Range</p>
+                                    <p>• Salve Amulet (EI)</p>
+                                </div>
+                                <div class="space-y-1">
+                                    <p>• Thralls Unlocked</p>
+                                    <p>• Crystal Halberd</p>
+                                    <p>• Rune Pouch</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Notes -->
+                    <div class="space-y-4">
+                        <div class="p-4 bg-yellow-900 bg-opacity-50 rounded-lg border border-yellow-500">
+                            <p class="text-yellow-200 text-sm">
+                                <span class="font-bold">Note:</span> Requirements may be waived for exceptional candidates or those showing strong potential. 
+                                We value attitude and dedication over pure stats!
+                            </p>
+                        </div>
+                        <div class="p-4 bg-blue-900 bg-opacity-50 rounded-lg border border-blue-500">
+                            <p class="text-blue-200 text-sm">
+                                <span class="font-bold">Ironman Note:</span> Fang, Augury and Rigour are not required to join for ironman accounts. 
+                                Ironman applications can be reviewed on a case by case basis.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How to Apply & Important Info -->
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-black bg-opacity-40 p-6 rounded-xl border border-green-500">
+                        <h3 class="text-2xl font-bold text-green-400 mb-4">📋 How to Apply</h3>
+                        <p class="text-gray-300 mb-4">Read the rules and follow the instructions. An application channel will appear where you can post to apply.</p>
+                        <p class="text-sm text-gray-400">To update your display name in the Ignite leaderboard, please use the /setname command (requires minimum trial rank)</p>
+                    </div>
+                    <div class="bg-black bg-opacity-40 p-6 rounded-xl border border-blue-500">
+                        <h3 class="text-2xl font-bold text-blue-400 mb-4">🤖 Submit Drops</h3>
+                        <p class="text-gray-300 mb-4">Go to bot-information for information on how our Discord Bot works, including submitting loot for clan points.</p>
+                        <p class="text-sm text-gray-400">If you wish to be a guest of the clan for the time being, go to rules and react with the star ⭐</p>
+                    </div>
+                </div>
+
+                <!-- Discord Link -->
+                <div class="bg-black bg-opacity-40 p-8 rounded-xl border border-orange-500 glow mb-8 text-center">
+                    <h3 class="text-3xl font-bold text-orange-400 mb-4">🎮 Join Our Discord</h3>
+                    <p class="text-gray-300 mb-6">Welcome aboard, and let's make some memories!</p>
+                    <a href="https://discord.gg/mK8pUe3F5t" target="_blank" class="inline-block bg-indigo-600 hover:bg-indigo-500 px-8 py-4 rounded-lg text-white font-bold text-lg transition-all glow mr-4">
+                        Join Discord Server
+                    </a>
+                    <button onclick="showSection('apply')" class="flame-gradient px-8 py-4 rounded-lg text-white font-bold text-lg hover:scale-105 transition-all glow">
+                        Apply to Clan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members Section -->
+        <div id="members" class="section hidden">
+            <div class="max-w-7xl mx-auto px-4 py-12">
+                <h2 class="text-4xl font-bold flame-text text-center mb-8">Clan Members</h2>
+                <div class="text-center mb-8">
+                    <p class="text-gray-400 mb-2">Connected to WiseOldMan for live updates • <span id="memberCount" class="text-green-400">Loading...</span></p>
+                    <button onclick="openClanPage()" class="text-orange-400 hover:text-orange-300 underline text-sm">
+                        View Full Clan on WiseOldMan →
+                    </button>
+                </div>
+                
+                <div id="membersGrid" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Members will be loaded dynamically from API -->
+                    <div class="text-center col-span-full">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                        <p class="text-gray-400 mt-2">Loading clan members...</p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-8">
+                    <p class="text-gray-400 text-sm">Click any member to view their WiseOldMan profile</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hiscores Section -->
+        <div id="hiscores" class="section hidden">
+            <div class="max-w-7xl mx-auto px-4 py-12">
+                <h2 class="text-4xl font-bold flame-text text-center mb-4">Clan Hiscores</h2>
+                <div class="text-center mb-8">
+                    <button onclick="openClanPage()" class="text-orange-400 hover:text-orange-300 underline text-sm">
+                        View Live Stats on WiseOldMan →
+                    </button>
+                </div>
+                
+                <div id="hiscoresContent">
+                    <!-- Loading message -->
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                        <p class="text-gray-400 mt-2">Loading hiscores...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Announcements Section -->
+        <div id="announcements" class="section hidden">
+            <div class="max-w-4xl mx-auto px-4 py-12">
+                <h2 class="text-4xl font-bold flame-text text-center mb-8">Clan Announcements</h2>
+                <div class="text-center mb-8">
+                    <p class="text-gray-400 mb-2">Live updates from Discord • Last 3 announcements</p>
+                    <button onclick="loadAnnouncements()" class="text-orange-400 hover:text-orange-300 underline text-sm">
+                        Refresh Announcements
+                    </button>
+                </div>
+                
+                <div id="announcementsContent">
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                        <p class="text-gray-400 mt-2">Loading announcements...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Application Section -->
+        <div id="apply" class="section hidden">
+            <div class="max-w-2xl mx-auto px-4 py-12">
+                <h2 class="text-4xl font-bold flame-text text-center mb-8">Join Ignite</h2>
+                <p class="text-center text-gray-300 mb-8">Ready to ignite your OSRS journey? Fill out the application below!</p>
+                
+                <div class="bg-black bg-opacity-50 p-8 rounded-xl border border-orange-500 glow">
+                    <form id="applicationForm" class="space-y-6">
+                        <div>
+                            <label class="block text-orange-400 font-bold mb-2">RSN (RuneScape Name) *</label>
+                            <input type="text" required class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none" placeholder="Your in-game name">
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-orange-400 font-bold mb-2">Total Level *</label>
+                                <input type="number" required min="1750" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none" placeholder="1750+">
+                            </div>
+                            <div>
+                                <label class="block text-orange-400 font-bold mb-2">Combat Level *</label>
+                                <input type="number" required min="115" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none" placeholder="115+">
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-orange-400 font-bold mb-2">Quest Points *</label>
+                                <input type="number" required min="200" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none" placeholder="200+">
+                            </div>
+                            <div>
+                                <label class="block text-orange-400 font-bold mb-2">Magic Level *</label>
+                                <input type="number" required min="94" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none" placeholder="94+">
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-orange-400 font-bold mb-2">Ranged Level *</label>
+                                <input type="number" required min="90" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none" placeholder="90+">
+                            </div>
+                            <div>
+                                <label class="block text-orange-400 font-bold mb-2">Construction Level *</label>
+                                <input type="number" required min="83" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none" placeholder="83+">
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-orange-400 font-bold mb-2">Herblore Level *</label>
+                                <input type="number" required min="78" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none" placeholder="78+">
+                            </div>
+                            <div>
+                                <label class="block text-orange-400 font-bold mb-2">Fire Cape *</label>
+                                <select required class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none">
+                                    <option value="">Select...</option>
+                                    <option value="fire">Fire Cape</option>
+                                    <option value="infernal">Infernal Cape</option>
+                                    <option value="no">No, but working on it</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-orange-400 font-bold mb-2">Discord Username *</label>
+                            <input type="text" required class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none" placeholder="username#1234">
+                        </div>
+
+                        <div>
+                            <label class="block text-orange-400 font-bold mb-2">PvM Experience & Requirements</label>
+                            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-1">Chambers of Xeric KC *</label>
+                                    <input type="number" required min="0" class="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white focus:border-orange-500 focus:outline-none" placeholder="Enter KC">
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-1">Theatre of Blood KC *</label>
+                                    <input type="number" required min="0" class="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white focus:border-orange-500 focus:outline-none" placeholder="Enter KC">
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-1">Tombs of Amascut KC *</label>
+                                    <input type="number" required min="0" class="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white focus:border-orange-500 focus:outline-none" placeholder="Enter KC">
+                                </div>
+                            </div>
+                            <div class="mb-4 p-3 bg-blue-900 bg-opacity-30 rounded border border-blue-500">
+                                <p class="text-blue-200 text-sm">
+                                    <span class="font-bold">Combined Raids Requirement:</span> Total of 50+ KC across all three raids (COX + TOB + TOA)
+                                </p>
+                            </div>
+                            
+                            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-1">Augury Unlocked *</label>
+                                    <select required class="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white focus:border-orange-500 focus:outline-none">
+                                        <option value="">Select...</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                        <option value="ironman">N/A (Ironman)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-1">Piety Unlocked *</label>
+                                    <select required class="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white focus:border-orange-500 focus:outline-none">
+                                        <option value="">Select...</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-1">Rigour Unlocked *</label>
+                                    <select required class="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white focus:border-orange-500 focus:outline-none">
+                                        <option value="">Select...</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                        <option value="ironman">N/A (Ironman)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="block text-sm text-gray-300 mb-2">Additional PvM Experience (Optional)</label>
+                                <div class="grid md:grid-cols-2 gap-2">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" class="text-orange-500">
+                                        <span class="text-sm">Godwars Dungeon</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" class="text-orange-500">
+                                        <span class="text-sm">Corporeal Beast</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" class="text-orange-500">
+                                        <span class="text-sm">Dagannoth Kings</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" class="text-orange-500">
+                                        <span class="text-sm">Zulrah/Vorkath</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-orange-400 font-bold mb-2">Why do you want to join Ignite?</label>
+                            <textarea rows="4" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none" placeholder="Tell us about yourself and why you'd like to join our clan..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-orange-400 font-bold mb-2">How did you hear about us?</label>
+                            <select class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none">
+                                <option>Select an option</option>
+                                <option>In-game recruitment</option>
+                                <option>Discord</option>
+                                <option>Reddit</option>
+                                <option>Friend referral</option>
+                                <option>OSRS Forums</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-orange-400 font-bold mb-2">Proof of Requirements *</label>
+                            <p class="text-gray-300 text-sm mb-4">Please upload screenshots showing your stats and required equipment. You can upload multiple images.</p>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-2">Stats Screenshot (Skills tab showing required levels) *</label>
+                                    <input type="file" accept="image/*" required class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-600 file:text-white hover:file:bg-orange-500">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-2">Equipment Screenshots (Bank/Equipped gear) *</label>
+                                    <input type="file" accept="image/*" multiple required class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-600 file:text-white hover:file:bg-orange-500">
+                                    <p class="text-xs text-gray-400 mt-1">Upload screenshots of your melee, range, and mage setups</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-2">PvM KC Screenshots (Collection log or chat) *</label>
+                                    <input type="file" accept="image/*" multiple required class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-600 file:text-white hover:file:bg-orange-500">
+                                    <p class="text-xs text-gray-400 mt-1">Show your raid kill counts (COX, TOB, TOA)</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm text-gray-300 mb-2">Prayer/Spellbook Screenshots (Optional)</label>
+                                    <input type="file" accept="image/*" multiple class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-600 file:text-white hover:file:bg-orange-500">
+                                    <p class="text-xs text-gray-400 mt-1">Show unlocked prayers (Augury, Piety, Rigour) and spellbooks</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 p-3 bg-yellow-900 bg-opacity-30 rounded border border-yellow-500">
+                                <p class="text-yellow-200 text-sm">
+                                    <span class="font-bold">📸 Screenshot Tips:</span> Make sure images are clear and show the relevant information. 
+                                    You can use tools like Gyazo, Lightshot, or the built-in Windows Snipping Tool.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-red-900 bg-opacity-50 p-4 rounded-lg border border-red-500">
+                            <h4 class="font-bold text-red-400 mb-2">Requirements Summary:</h4>
+                            <div class="grid md:grid-cols-2 gap-4 text-sm text-red-200 mb-3">
+                                <div>
+                                    <p class="font-bold text-yellow-400 mb-1">Skill Requirements:</p>
+                                    <ul class="space-y-1">
+                                        <li>• 1750+ Total Level</li>
+                                        <li>• 115+ Combat Level</li>
+                                        <li>• 200+ Quest Points</li>
+                                        <li>• 94+ Magic, 90+ Ranged</li>
+                                        <li>• 83+ Construction, 78+ Herblore</li>
+                                        <li>• Fire Cape or Infernal Cape</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-yellow-400 mb-1">PvM Requirements:</p>
+                                    <ul class="space-y-1">
+                                        <li>• 50+ Combined Raids KC</li>
+                                        <li>• Augury, Piety, Rigour</li>
+                                        <li>• Required Equipment Sets</li>
+                                        <li>• Untradable Items</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <p class="text-xs text-yellow-200">
+                                    <span class="font-bold">Note:</span> Requirements may be waived for exceptional candidates. We value attitude and dedication!
+                                </p>
+                                <p class="text-xs text-blue-200">
+                                    <span class="font-bold">Ironman Note:</span> Fang, Augury and Rigour are not required for ironman accounts.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full flame-gradient py-4 rounded-lg text-white font-bold text-lg hover:scale-105 transition-all glow">
+                            Submit Application 🔥
+                        </button>
+                    </form>
+                </div>
+
+                <div class="text-center mt-6">
+                    <p class="text-gray-400 text-sm">Applications are reviewed within 24-48 hours. You'll be contacted via Discord!</p>
+                </div>
+                
+                <!-- Backend Server Setup Instructions -->
+                <div class="mt-8 bg-blue-900 bg-opacity-50 p-6 rounded-xl border border-blue-500">
+                    <h3 class="text-blue-400 font-bold text-lg mb-4">🖥️ Backend Server Setup (Recommended)</h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-blue-300 font-bold mb-2">📦 Why Use a Backend Server?</h4>
+                            <ul class="text-blue-200 space-y-1 list-disc list-inside">
+                                <li><strong>File Uploads:</strong> Screenshots are automatically uploaded to Discord</li>
+                                <li><strong>Better Organization:</strong> Text and images sent to separate channels</li>
+                                <li><strong>Enhanced Security:</strong> Webhook URLs hidden from frontend</li>
+                                <li><strong>Advanced Features:</strong> Database logging, email notifications, etc.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-green-300 font-bold mb-2">🚀 Quick Setup Instructions:</h4>
+                            <ol class="text-green-200 space-y-2 list-decimal list-inside text-xs">
+                                <li>Create a new folder for your server: <code class="bg-gray-800 px-1 rounded">mkdir ignite-server</code></li>
+                                <li>Navigate to the folder: <code class="bg-gray-800 px-1 rounded">cd ignite-server</code></li>
+                                <li>Initialize npm: <code class="bg-gray-800 px-1 rounded">npm init -y</code></li>
+                                <li>Install dependencies: <code class="bg-gray-800 px-1 rounded">npm install express multer form-data node-fetch</code></li>
+                                <li>Create <code class="bg-gray-800 px-1 rounded">server.js</code> file with the code below</li>
+                                <li>Update webhook URLs in server.js</li>
+                                <li>Run the server: <code class="bg-gray-800 px-1 rounded">node server.js</code></li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-yellow-300 font-bold mb-2">📝 Complete server.js Code:</h4>
+                            <div class="bg-gray-900 p-3 rounded text-xs overflow-x-auto">
+                                <pre class="text-green-300"><code>const express = require('express');
+const multer = require('multer');
+const FormData = require('form-data');
+const fetch = require('node-fetch');
+const fs = require('fs');
+const cors = require('cors');
+
+const app = express();
+
+// Enable CORS for your website
+app.use(cors({
+    origin: ['http://localhost:3000', 'https://your-website.com'],
+    credentials: true
+}));
+
+// Configure multer for file uploads
+const upload = multer({ 
+    dest: 'uploads/',
+    limits: {
+        fileSize: 8 * 1024 * 1024, // 8MB limit
+        files: 10 // Max 10 files
+    }
+});
+
+// Your Discord webhook URLs - UPDATE THESE!
+const TEXT_WEBHOOK_URL = 'https://discord.com/api/webhooks/1312519842829549754/ZZyDaJR4Pp39mm4AVnwmz6oSTTM8VC3leiF54mNGnXbOQTZDRe_7d0nvo9P4AzKxCNaY';
+const IMAGE_WEBHOOK_URL = 'https://discord.com/api/webhooks/1312519842829549264/wokEy-9DqZ6LqqWXGBsmoVVwvK7EypaoJzmbFIZ5c-rOtSPq2oEUdmmUYPW9ddw-0Imz';
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Handle clan application submission
+app.post('/submit-application', upload.array('images', 10), async (req, res) => {
     try {
-        const testPayload = {
-            content: "🧪 **Webhook Test**",
-            embeds: [{
-                title: "Connection Test",
-                description: "This is a test message to verify the webhook is working correctly.",
-                color: 16744448,
-                timestamp: new Date().toISOString(),
-                footer: {
-                    text: "Test from Ignite website"
-                }
-            }]
+        console.log('📋 New application received:', req.body.rsn);
+        
+        const {
+            rsn, discordUsername, totalLevel, combatLevel, questPoints,
+            magicLevel, rangedLevel, constructionLevel, herbloreLevel,
+            fireCape, coxKc, tobKc, toaKc, totalRaidKc,
+            augury, piety, rigour, whyJoin, howHeard
+        } = req.body;
+        
+        const uploadedFiles = req.files || [];
+        console.log(`📸 ${uploadedFiles.length} files uploaded`);
+
+        // Create Discord embed for application
+        const embed = {
+            title: "🔥 New Ignite Clan Application",
+            color: 16744448, // Orange
+            description: `New application from **${rsn}**\\n\\n**Application ID:** APP-${Date.now()}`,
+            fields: [
+                { name: "👤 RSN", value: rsn || "Not provided", inline: true },
+                { name: "💬 Discord", value: discordUsername || "Not provided", inline: true },
+                { name: "📊 Total Level", value: totalLevel || "Not provided", inline: true },
+                { name: "⚔️ Combat Level", value: combatLevel || "Not provided", inline: true },
+                { name: "📜 Quest Points", value: questPoints || "Not provided", inline: true },
+                { name: "🔮 Magic Level", value: magicLevel || "Not provided", inline: true },
+                { name: "🏹 Ranged Level", value: rangedLevel || "Not provided", inline: true },
+                { name: "🏠 Construction", value: constructionLevel || "Not provided", inline: true },
+                { name: "🧪 Herblore", value: herbloreLevel || "Not provided", inline: true },
+                { name: "🔥 Fire Cape", value: fireCape || "Not specified", inline: true },
+                { name: "🏛️ Chambers KC", value: coxKc || "0", inline: true },
+                { name: "🎭 Theatre KC", value: tobKc || "0", inline: true },
+                { name: "🏺 Tombs KC", value: toaKc || "0", inline: true },
+                { name: "🎯 Total Raid KC", value: totalRaidKc || "0", inline: true },
+                { name: "📿 Augury", value: augury || "Not specified", inline: true },
+                { name: "⚔️ Piety", value: piety || "Not specified", inline: true },
+                { name: "🏹 Rigour", value: rigour || "Not specified", inline: true }
+            ],
+            footer: {
+                text: "Ignite Clan Application • React with ✅ to approve, ❌ to deny",
+                icon_url: "https://imgur.com/u2cvtkN.png"
+            },
+            timestamp: new Date().toISOString()
         };
 
-        const response = await fetch(APPLICATION_WEBHOOK, {
+        // Add longer text fields
+        if (whyJoin && whyJoin.trim()) {
+            embed.fields.push({
+                name: "💭 Why join Ignite?",
+                value: whyJoin.substring(0, 1024),
+                inline: false
+            });
+        }
+
+        if (howHeard && howHeard !== 'Select an option') {
+            embed.fields.push({
+                name: "📢 How did you hear about us?",
+                value: howHeard,
+                inline: false
+            });
+        }
+
+        if (uploadedFiles.length > 0) {
+            embed.fields.push({
+                name: "📸 Screenshots",
+                value: `${uploadedFiles.length} files uploaded - check images channel`,
+                inline: false
+            });
+        }
+
+        // Send application text to Discord
+        console.log('📤 Sending application to Discord...');
+        const textResponse = await fetch(TEXT_WEBHOOK_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(testPayload)
+            body: JSON.stringify({
+                content: `🔥 **New Clan Application Received!**`,
+                embeds: [embed]
+            })
         });
 
-        console.log('🧪 Test response status:', response.status);
-        const responseText = await response.text();
-        console.log('🧪 Test response body:', responseText);
-
-        if (response.ok) {
-            console.log('✅ Webhook test PASSED! Check your Discord channel.');
-            return true;
-        } else {
-            console.error('❌ Webhook test FAILED:', response.status, responseText);
-            return false;
+        if (!textResponse.ok) {
+            throw new Error(`Text webhook failed: ${textResponse.status}`);
         }
-    } catch (error) {
-        console.error('❌ Webhook test ERROR:', error);
-        return false;
-    }
-}
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔥 Initializing Ignite application system...');
-    setupApplicationForm();
-    
-    // Optional: Test webhook on page load (remove this in production)
-    // testWebhookConnection();
+        // Send images to Discord if any were uploaded
+        if (uploadedFiles.length > 0) {
+            console.log('📸 Uploading images to Discord...');
+            
+            for (const file of uploadedFiles) {
+                try {
+                    const form = new FormData();
+                    form.append('file', fs.createReadStream(file.path), file.originalname);
+                    form.append('payload_json', JSON.stringify({
+                        content: `**📸 Screenshot from ${rsn}'s application**\\n*${file.originalname}*`,
+                        username: 'Ignite Applications'
+                    }));
+
+                    const imageResponse = await fetch(IMAGE_WEBHOOK_URL, {
+                        method: 'POST',
+                        body: form
+                    });
+
+                    if (imageResponse.ok) {
+                        console.log(`✅ Uploaded: ${file.originalname}`);
+                    } else {
+                        console.error(`❌ Failed to upload: ${file.originalname}`);
+                    }
+
+                    // Clean up uploaded file
+                    fs.unlinkSync(file.path);
+                } catch (fileError) {
+                    console.error(`Error uploading ${file.originalname}:`, fileError);
+                    // Clean up file even if upload failed
+                    try { fs.unlinkSync(file.path); } catch {}
+                }
+            }
+        }
+
+        console.log('✅ Application processed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Application submitted successfully!',
+            filesUploaded: uploadedFiles.length
+        });
+
+    } catch (error) {
+        console.error('❌ Error processing application:', error);
+        
+        // Clean up any uploaded files on error
+        if (req.files) {
+            req.files.forEach(file => {
+                try { fs.unlinkSync(file.path); } catch {}
+            });
+        }
+        
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to submit application: ' + error.message 
+        });
+    }
 });
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🔥 Ignite Clan Server running on port ${PORT}`);
+    console.log(`📡 Health check: http://localhost:${PORT}/health`);
+});</code></pre>
+                            </div>
+                            <p class="text-yellow-200 text-xs mt-2">
+                                <span class="font-bold">📝 Note:</span> Don't forget to install cors: 
+                                <code class="bg-gray-800 px-1 rounded">npm install cors</code>
+                            </p>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-orange-300 font-bold mb-2">⚙️ Server Configuration:</h4>
+                            <div class="text-orange-200 space-y-2 text-xs">
+                                <p><strong>Text Webhook:</strong> For application details (main channel)</p>
+                                <p><strong>Image Webhook:</strong> For screenshots (separate channel or same)</p>
+                                <p><strong>Port:</strong> Default 3000 (change BACKEND_URL if different)</p>
+                                <p><strong>File Limit:</strong> 8MB per file (Discord's limit)</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-900 bg-opacity-50 p-4 rounded-lg border border-yellow-500">
+                            <p class="text-yellow-200 text-xs">
+                                <span class="font-bold">💡 Fallback Mode:</span> If the backend server is not running, 
+                                the form will automatically fall back to direct webhook submission (without file uploads).
+                            </p>
+                        </div>
+                        
+                        <div class="bg-green-900 bg-opacity-50 p-4 rounded-lg border border-green-500">
+                            <h4 class="text-green-300 font-bold mb-2">🌐 Deployment Options:</h4>
+                            <ul class="text-green-200 space-y-1 list-disc list-inside text-xs">
+                                <li><strong>Local:</strong> Run on your computer (localhost:3000)</li>
+                                <li><strong>VPS:</strong> Deploy to a virtual private server</li>
+                                <li><strong>Heroku:</strong> Free cloud hosting (with some limitations)</li>
+                                <li><strong>Railway/Render:</strong> Modern cloud platforms</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Webhook Setup Instructions -->
+                <div class="mt-8 bg-purple-900 bg-opacity-50 p-6 rounded-xl border border-purple-500">
+                    <h3 class="text-purple-400 font-bold text-lg mb-4">🤖 Discord Webhook Setup</h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-purple-300 font-bold mb-2">📋 How to Create Discord Webhooks:</h4>
+                            <ol class="text-purple-200 space-y-2 list-decimal list-inside">
+                                <li>In your Discord server, go to <strong>Server Settings → Integrations → Webhooks</strong></li>
+                                <li>Click <strong>"New Webhook"</strong></li>
+                                <li>Set name to "Ignite Applications" and choose your channel</li>
+                                <li>Click <strong>"Copy Webhook URL"</strong></li>
+                                <li>Create a second webhook for images (optional - can use same)</li>
+                                <li>Update the webhook URLs in your server.js file</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                            <h4 class="text-green-300 font-bold mb-2">📁 Recommended Channel Setup:</h4>
+                            <ul class="text-green-200 space-y-1 list-disc list-inside">
+                                <li><strong>#applications:</strong> Main application text and embeds</li>
+                                <li><strong>#app-screenshots:</strong> Uploaded images and files</li>
+                                <li><strong>#app-admin:</strong> Admin notifications and logs</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Debug & Testing Section -->
+                <div class="mt-8 bg-gray-900 bg-opacity-50 p-6 rounded-xl border border-blue-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-blue-400 font-bold text-lg">🔧 Debug & Testing Tools</h3>
+                        <button onclick="toggleDebugSection()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-white text-sm">
+                            Toggle Debug Panel
+                        </button>
+                    </div>
+                    
+                    <div id="debugSection" class="hidden space-y-4">
+                        <!-- Webhook Test -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-blue-300 font-bold mb-3">📡 Webhook Connection Test</h4>
+                            <div class="flex space-x-3 mb-3">
+                                <button onclick="testWebhook('application')" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded text-white text-sm">
+                                    Test Application Webhook
+                                </button>
+                                <button onclick="testWebhook('admin')" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded text-white text-sm">
+                                    Test Admin Webhook
+                                </button>
+                            </div>
+                            <div id="webhookTestResults" class="text-sm bg-gray-800 p-3 rounded min-h-[100px] font-mono overflow-auto"></div>
+                        </div>
+
+                        <!-- Form Validation -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-blue-300 font-bold mb-3">✅ Real-time Form Validation</h4>
+                            <div id="formValidation" class="text-sm space-y-2">
+                                <p class="text-gray-400">Fill out the form above to see real-time validation...</p>
+                            </div>
+                        </div>
+
+                        <!-- Network Diagnostics -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-blue-300 font-bold mb-3">🌐 Network Diagnostics</h4>
+                            <button onclick="runNetworkDiagnostics()" class="bg-orange-600 hover:bg-orange-500 px-4 py-2 rounded text-white text-sm mb-3">
+                                Run Diagnostics
+                            </button>
+                            <div id="networkDiagnostics" class="text-sm bg-gray-800 p-3 rounded min-h-[80px] font-mono overflow-auto"></div>
+                        </div>
+
+                        <!-- Form Data Preview -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-blue-300 font-bold mb-3">📋 Form Data Preview</h4>
+                            <p class="text-gray-400 text-sm mb-3">This shows exactly what will be sent to Discord:</p>
+                            <div id="formDataPreview" class="text-sm bg-gray-800 p-3 rounded min-h-[100px] font-mono overflow-auto">
+                                <span class="text-gray-500">Form data will appear here as you fill it out...</span>
+                            </div>
+                        </div>
+
+                        <!-- Error Log -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-red-300 font-bold mb-3">🚨 Error Log</h4>
+                            <button onclick="clearErrorLog()" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-white text-xs mb-3">
+                                Clear Log
+                            </button>
+                            <div id="errorLog" class="text-sm bg-gray-800 p-3 rounded min-h-[80px] font-mono overflow-auto">
+                                <span class="text-gray-500">No errors logged yet...</span>
+                            </div>
+                        </div>
+
+                        <!-- Webhook URLs Display -->
+                        <div class="bg-black bg-opacity-50 p-4 rounded-lg border border-gray-600">
+                            <h4 class="text-green-300 font-bold mb-3">🔗 Current Webhook Configuration</h4>
+                            <div class="space-y-2 text-sm">
+                                <div>
+                                    <span class="text-green-400 font-bold">Application Webhook:</span>
+                                    <div class="bg-gray-800 p-2 rounded mt-1 font-mono text-xs break-all">
+                                        <span id="appWebhookDisplay">Loading...</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-purple-400 font-bold">Admin Webhook:</span>
+                                    <div class="bg-gray-800 p-2 rounded mt-1 font-mono text-xs break-all">
+                                        <span id="adminWebhookDisplay">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation functionality
+        function showSection(sectionName) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.add('hidden'));
+            
+            // Show selected section
+            document.getElementById(sectionName).classList.remove('hidden');
+            
+            // Update navigation buttons
+            const navButtons = document.querySelectorAll('nav button');
+            navButtons.forEach(button => {
+                button.classList.remove('bg-orange-600', 'hover:bg-orange-500');
+                button.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            });
+            
+            // Highlight active button
+            event.target.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+            event.target.classList.add('bg-orange-600', 'hover:bg-orange-500');
+        }
+
+        // WiseOldMan integration
+        function openWiseOldMan(username) {
+            // Open the actual WiseOldMan player profile
+            window.open(`https://wiseoldman.net/players/${username}`, '_blank');
+        }
+        
+        function openClanPage() {
+            // Open the Ignite clan page on WiseOldMan
+            window.open('https://wiseoldman.net/groups/10214', '_blank');
+        }
+
+        // Fetch and display clan members from WiseOldMan API
+        async function loadClanMembers() {
+            try {
+                const response = await fetch('https://api.wiseoldman.net/v2/groups/10214', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const groupData = await response.json();
+                
+                // Update member count
+                document.getElementById('memberCount').textContent = `${groupData.memberCount} Active Members`;
+                
+                // Clear loading message
+                const membersGrid = document.getElementById('membersGrid');
+                membersGrid.innerHTML = '';
+                
+                // Function to get rank color and display name
+                function getRankInfo(role) {
+                    const ranks = {
+                        'owner': { color: 'bg-red-600', name: 'Owner' },
+                        'deputy_owner': { color: 'bg-purple-600', name: 'Deputy Owner' },
+                        'onyx': { color: 'bg-gray-800', name: 'Onyx' },
+                        'lieutenant': { color: 'bg-blue-600', name: 'Lieutenant' },
+                        'corporal': { color: 'bg-green-600', name: 'Corporal' },
+                        'recruit': { color: 'bg-gray-600', name: 'Recruit' }
+                    };
+                    return ranks[role] || { color: 'bg-gray-600', name: 'Member' };
+                }
+                
+                // Function to format experience
+                function formatExperience(exp) {
+                    if (exp >= 1000000000) return (exp / 1000000000).toFixed(2) + 'b';
+                    if (exp >= 1000000) return (exp / 1000000).toFixed(1) + 'm';
+                    if (exp >= 1000) return (exp / 1000).toFixed(0) + 'k';
+                    return exp.toString();
+                }
+                
+                // Function to get activity status
+                function getActivityStatus(lastUpdated) {
+                    const now = new Date();
+                    const updated = new Date(lastUpdated);
+                    const diffHours = (now - updated) / (1000 * 60 * 60);
+                    
+                    if (diffHours < 1) return { color: 'bg-green-400', text: 'Online' };
+                    if (diffHours < 24) return { color: 'bg-yellow-400', text: Math.floor(diffHours) + 'h ago' };
+                    if (diffHours < 168) return { color: 'bg-orange-400', text: Math.floor(diffHours / 24) + 'd ago' };
+                    return { color: 'bg-red-400', text: 'Inactive' };
+                }
+                
+                // Display members
+                groupData.memberships.forEach(member => {
+                    const rankInfo = getRankInfo(member.role);
+                    const activity = getActivityStatus(member.player.updatedAt);
+                    
+                    // Get total level from latest snapshot with better error handling
+                    let totalLevel = 'N/A';
+                    try {
+                        if (member.player && member.player.latestSnapshot && 
+                            member.player.latestSnapshot.data && 
+                            member.player.latestSnapshot.data.skills && 
+                            member.player.latestSnapshot.data.skills.overall) {
+                            totalLevel = member.player.latestSnapshot.data.skills.overall.level;
+                        } else if (member.player && member.player.latestSnapshot && 
+                                   member.player.latestSnapshot.data && 
+                                   member.player.latestSnapshot.data.overall) {
+                            totalLevel = member.player.latestSnapshot.data.overall.level;
+                        }
+                    } catch (e) {
+                        console.log('Error getting total level for', member.player.displayName, e);
+                    }
+                    
+                    // Get combat level with better error handling
+                    let combatLevel = 'N/A';
+                    try {
+                        if (member.player && member.player.combatLevel) {
+                            combatLevel = member.player.combatLevel;
+                        } else if (member.player && member.player.latestSnapshot && 
+                                   member.player.latestSnapshot.data && 
+                                   member.player.latestSnapshot.data.skills) {
+                            // Calculate combat level from skills if not directly available
+                            const skills = member.player.latestSnapshot.data.skills;
+                            if (skills.attack && skills.defence && skills.strength && skills.hitpoints && skills.prayer && skills.ranged && skills.magic) {
+                                const attack = skills.attack.level || 1;
+                                const defence = skills.defence.level || 1;
+                                const strength = skills.strength.level || 1;
+                                const hitpoints = skills.hitpoints.level || 10;
+                                const prayer = skills.prayer.level || 1;
+                                const ranged = skills.ranged.level || 1;
+                                const magic = skills.magic.level || 1;
+                                
+                                const base = 0.25 * (defence + hitpoints + Math.floor(prayer / 2));
+                                const melee = 0.325 * (attack + strength);
+                                const range = 0.325 * (Math.floor(ranged / 2) + ranged);
+                                const mage = 0.325 * (Math.floor(magic / 2) + magic);
+                                combatLevel = Math.floor(base + Math.max(melee, range, mage));
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Error getting combat level for', member.player.displayName, e);
+                    }
+                    
+                    const memberCard = document.createElement('div');
+                    memberCard.className = 'member-card bg-black bg-opacity-50 p-4 rounded-xl border border-gray-600 hover:border-orange-500 transition-all cursor-pointer';
+                    memberCard.onclick = () => openWiseOldMan(member.player.username);
+                    
+                    memberCard.innerHTML = `
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-3 h-3 ${activity.color} rounded-full"></div>
+                            <h3 class="font-bold text-orange-400 truncate">${member.player.displayName}</h3>
+                            <span class="text-xs ${rankInfo.color} px-2 py-1 rounded text-white">${rankInfo.name}</span>
+                        </div>
+                        <div class="text-sm text-gray-300">
+                            <p>Total Level: ${totalLevel}</p>
+                            <p>Combat: ${combatLevel}</p>
+                            <p>XP: ${formatExperience(member.player.exp)}</p>
+                            <p class="text-xs text-gray-400">${activity.text}</p>
+                        </div>
+                    `;
+                    
+                    membersGrid.appendChild(memberCard);
+                });
+                
+            } catch (error) {
+                console.error('Error loading clan members:', error);
+                document.getElementById('membersGrid').innerHTML = `
+                    <div class="text-center col-span-full">
+                        <p class="text-red-400">Failed to load clan members. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Load hiscores data with comprehensive debugging
+        async function loadHiscores() {
+            console.log('🔥 Starting hiscores load process...');
+            
+            // Show detailed loading status on the page
+            const hiscoresContent = document.getElementById('hiscoresContent');
+            hiscoresContent.innerHTML = `
+                <div class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                    <p class="text-gray-400 mt-2">Loading hiscores...</p>
+                    <div id="debugStatus" class="text-sm text-gray-500 mt-4 space-y-1 max-w-2xl mx-auto">
+                        <p>🔄 Connecting to WiseOldMan API...</p>
+                    </div>
+                </div>
+            `;
+            
+            const debugDiv = document.getElementById('debugStatus');
+            
+            try {
+                // Step 1: Fetch group data with detailed logging
+                debugDiv.innerHTML += '<p>📡 Making API request to WiseOldMan...</p>';
+                console.log('🌐 Making request to: https://api.wiseoldman.net/v2/groups/10214');
+                
+                const groupResponse = await fetch('https://api.wiseoldman.net/v2/groups/10214', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📊 API Response Status:', groupResponse.status);
+                console.log('📊 API Response Headers:', [...groupResponse.headers.entries()]);
+                debugDiv.innerHTML += `<p>📊 API Response: ${groupResponse.status} ${groupResponse.statusText}</p>`;
+                
+                if (!groupResponse.ok) {
+                    const errorText = await groupResponse.text();
+                    console.error('❌ API Error Response:', errorText);
+                    debugDiv.innerHTML += `<p class="text-red-400">❌ API Error: ${groupResponse.status} - ${errorText}</p>`;
+                    throw new Error(`API error! status: ${groupResponse.status} - ${errorText}`);
+                }
+                
+                // Step 2: Parse response with detailed logging
+                const responseText = await groupResponse.text();
+                console.log('📝 Raw API Response (first 500 chars):', responseText.substring(0, 500));
+                debugDiv.innerHTML += '<p>📝 Parsing API response...</p>';
+                
+                let groupData;
+                try {
+                    groupData = JSON.parse(responseText);
+                    console.log('✅ Group data parsed successfully');
+                    console.log('👥 Member count:', groupData.memberCount);
+                    console.log('🏷️ Group name:', groupData.name);
+                    debugDiv.innerHTML += `<p class="text-green-400">✅ Clan data loaded: ${groupData.memberCount} members</p>`;
+                    
+                    // Debug: Log the structure of the first member's data
+                    if (groupData.memberships && groupData.memberships.length > 0) {
+                        console.log('👤 Sample member data structure:', JSON.stringify(groupData.memberships[0], null, 2));
+                        debugDiv.innerHTML += `<p class="text-blue-400">📋 Sample member: ${groupData.memberships[0].player.displayName}</p>`;
+                    }
+                } catch (parseError) {
+                    console.error('❌ JSON Parse Error:', parseError);
+                    console.log('🔍 Response that failed to parse:', responseText);
+                    debugDiv.innerHTML += `<p class="text-red-400">❌ Failed to parse clan data: ${parseError.message}</p>`;
+                    throw new Error('Failed to parse clan data JSON: ' + parseError.message);
+                }
+                
+                // Step 3: Load additional data with error handling
+                debugDiv.innerHTML += '<p>🔄 Loading weekly gains...</p>';
+                let weeklyGains = [];
+                try {
+                    const weeklyResponse = await fetch('https://api.wiseoldman.net/v2/groups/10214/gained?period=week&limit=10');
+                    if (weeklyResponse.ok) {
+                        weeklyGains = await weeklyResponse.json();
+                        console.log('📈 Weekly gains loaded:', weeklyGains.length, 'entries');
+                        debugDiv.innerHTML += `<p class="text-green-400">📈 Weekly gains: ${weeklyGains.length} entries</p>`;
+                    } else {
+                        console.log('⚠️ Weekly gains API returned:', weeklyResponse.status);
+                        debugDiv.innerHTML += `<p class="text-yellow-400">⚠️ Weekly gains unavailable (${weeklyResponse.status})</p>`;
+                    }
+                } catch (error) {
+                    console.log('❌ Weekly gains failed:', error);
+                    debugDiv.innerHTML += `<p class="text-yellow-400">⚠️ Weekly gains failed to load</p>`;
+                }
+                
+                debugDiv.innerHTML += '<p>🔄 Loading achievements...</p>';
+                let achievements = [];
+                try {
+                    const achievementsResponse = await fetch('https://api.wiseoldman.net/v2/groups/10214/achievements?limit=10');
+                    if (achievementsResponse.ok) {
+                        achievements = await achievementsResponse.json();
+                        console.log('🎉 Achievements loaded:', achievements.length, 'entries');
+                        debugDiv.innerHTML += `<p class="text-green-400">🎉 Achievements: ${achievements.length} entries</p>`;
+                    } else {
+                        console.log('⚠️ Achievements API returned:', achievementsResponse.status);
+                        debugDiv.innerHTML += `<p class="text-yellow-400">⚠️ Achievements unavailable (${achievementsResponse.status})</p>`;
+                    }
+                } catch (error) {
+                    console.log('❌ Achievements failed:', error);
+                    debugDiv.innerHTML += `<p class="text-yellow-400">⚠️ Achievements failed to load</p>`;
+                }
+                
+                debugDiv.innerHTML += '<p>🔄 Loading competitions...</p>';
+                let competitions = [];
+                try {
+                    const competitionsResponse = await fetch('https://api.wiseoldman.net/v2/groups/10214/competitions?limit=5');
+                    if (competitionsResponse.ok) {
+                        competitions = await competitionsResponse.json();
+                        console.log('🏁 Competitions loaded:', competitions.length, 'entries');
+                        debugDiv.innerHTML += `<p class="text-green-400">🏁 Competitions: ${competitions.length} entries</p>`;
+                    } else {
+                        console.log('⚠️ Competitions API returned:', competitionsResponse.status);
+                        debugDiv.innerHTML += `<p class="text-yellow-400">⚠️ Competitions unavailable (${competitionsResponse.status})</p>`;
+                    }
+                } catch (error) {
+                    console.log('❌ Competitions failed:', error);
+                    debugDiv.innerHTML += `<p class="text-yellow-400">⚠️ Competitions failed to load</p>`;
+                }
+                
+                debugDiv.innerHTML += '<p class="text-green-400">🎯 Processing member data...</p>';
+                
+                // Step 4: Process and display data
+                const membersByExp = [...groupData.memberships].sort((a, b) => {
+                    const aExp = (a.player && a.player.exp) ? a.player.exp : 0;
+                    const bExp = (b.player && b.player.exp) ? b.player.exp : 0;
+                    return bExp - aExp;
+                });
+                
+                const membersByCombat = [...groupData.memberships].sort((a, b) => {
+                    let aCombat = 0;
+                    let bCombat = 0;
+                    
+                    try {
+                        if (a.player && a.player.combatLevel) {
+                            aCombat = a.player.combatLevel;
+                        }
+                        if (b.player && b.player.combatLevel) {
+                            bCombat = b.player.combatLevel;
+                        }
+                    } catch (e) {
+                        console.log('Error calculating combat for sorting:', e);
+                    }
+                    
+                    return bCombat - aCombat;
+                });
+                
+                const membersByLevel = [...groupData.memberships].sort((a, b) => {
+                    let aLevel = 0;
+                    let bLevel = 0;
+                    
+                    try {
+                        if (a.player && a.player.latestSnapshot && a.player.latestSnapshot.data) {
+                            if (a.player.latestSnapshot.data.skills && a.player.latestSnapshot.data.skills.overall) {
+                                aLevel = a.player.latestSnapshot.data.skills.overall.level || 0;
+                            } else if (a.player.latestSnapshot.data.overall) {
+                                aLevel = a.player.latestSnapshot.data.overall.level || 0;
+                            }
+                        }
+                        
+                        if (b.player && b.player.latestSnapshot && b.player.latestSnapshot.data) {
+                            if (b.player.latestSnapshot.data.skills && b.player.latestSnapshot.data.skills.overall) {
+                                bLevel = b.player.latestSnapshot.data.skills.overall.level || 0;
+                            } else if (b.player.latestSnapshot.data.overall) {
+                                bLevel = b.player.latestSnapshot.data.overall.level || 0;
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Error sorting by level:', e);
+                    }
+                    
+                    return bLevel - aLevel;
+                });
+                
+                function formatExperience(exp) {
+                    if (exp >= 1000000000) return (exp / 1000000000).toFixed(2) + 'b';
+                    if (exp >= 1000000) return (exp / 1000000).toFixed(1) + 'm';
+                    if (exp >= 1000) return (exp / 1000).toFixed(0) + 'k';
+                    return exp.toString();
+                }
+                
+                function formatDate(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+                
+                function getSkillEmoji(skill) {
+                    const emojis = {
+                        'attack': '⚔️', 'defence': '🛡️', 'strength': '💪', 'hitpoints': '❤️',
+                        'ranged': '🏹', 'prayer': '🙏', 'magic': '🔮', 'cooking': '🍳',
+                        'woodcutting': '🪓', 'fletching': '🏹', 'fishing': '🎣', 'firemaking': '🔥',
+                        'crafting': '🔨', 'smithing': '⚒️', 'mining': '⛏️', 'herblore': '🧪',
+                        'agility': '🏃', 'thieving': '🥷', 'slayer': '💀', 'farming': '🌱',
+                        'runecrafting': '🌟', 'hunter': '🦌', 'construction': '🏠', 'overall': '🏆'
+                    };
+                    return emojis[skill] || '📊';
+                }
+                
+                debugDiv.innerHTML += '<p class="text-green-400">🎨 Rendering hiscores display...</p>';
+                
+                // Step 5: Render the final display
+                hiscoresContent.innerHTML = `
+
+
+                    <!-- Weekly Stats Section -->
+                    <div class="grid lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Top Weekly XP Gains -->
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-green-500">
+                            <h3 class="text-xl font-bold text-green-400 mb-4">📈 Top Weekly XP Gains</h3>
+                            <div class="space-y-2">
+                                ${weeklyGains.slice(0, 5).map(gain => `
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="cursor-pointer hover:text-green-400" onclick="openWiseOldMan('${gain.player.username}')">${gain.player.displayName}</span>
+                                        <span class="text-green-400 font-bold">${formatExperience(gain.data.overall.experience.gained)}</span>
+                                    </div>
+                                `).join('') || '<p class="text-gray-400 text-sm">No weekly data available</p>'}
+                            </div>
+                        </div>
+
+                        <!-- Recent Achievements -->
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-yellow-500">
+                            <h3 class="text-xl font-bold text-yellow-400 mb-4">🎉 Recent Achievements</h3>
+                            <div class="space-y-2 max-h-48 overflow-y-auto">
+                                ${achievements.slice(0, 8).map(achievement => {
+                                    // Safe handling of achievement data
+                                    const metric = achievement.metric || 'unknown';
+                                    const type = achievement.type ? achievement.type.replace('_', ' ') : 'achievement';
+                                    const playerName = achievement.player ? achievement.player.displayName : 'Unknown';
+                                    const username = achievement.player ? achievement.player.username : '';
+                                    const createdAt = achievement.createdAt || new Date().toISOString();
+                                    
+                                    return `
+                                        <div class="text-sm">
+                                            <div class="flex items-center space-x-2">
+                                                <span>${getSkillEmoji(metric)}</span>
+                                                <span class="cursor-pointer hover:text-yellow-400" onclick="openWiseOldMan('${username}')">${playerName}</span>
+                                            </div>
+                                            <p class="text-gray-300 text-xs ml-6">${type} - ${metric}</p>
+                                            <p class="text-gray-400 text-xs ml-6">${formatDate(createdAt)}</p>
+                                        </div>
+                                    `;
+                                }).join('') || '<p class="text-gray-400 text-sm">No recent achievements</p>'}
+                            </div>
+                        </div>
+
+                        <!-- Clan Points Leaderboard -->
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-purple-500">
+                            <h3 class="text-xl font-bold text-purple-400 mb-4">💎 Clan Points</h3>
+                            <div class="space-y-2">
+                                <p class="text-gray-400 text-sm mb-3">Connect your database to display clan points from Discord drops</p>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="text-gray-300">#1 FireMaster99</span>
+                                        <span class="text-purple-400 font-bold">2,450 pts</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="text-gray-300">#2 BlazeRunner</span>
+                                        <span class="text-purple-400 font-bold">1,890 pts</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="text-gray-300">#3 InfernoKing</span>
+                                        <span class="text-purple-400 font-bold">1,650 pts</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Sample data - integrate with your Discord bot database</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- All-Time Stats -->
+                    <div class="grid lg:grid-cols-2 gap-8 mb-8">
+                        <!-- Top Total Experience -->
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-orange-500">
+                            <h3 class="text-2xl font-bold text-orange-400 mb-4">🏆 Top Total Experience</h3>
+                            <div class="space-y-3">
+                                ${membersByExp.slice(0, 5).map(member => `
+                                    <div class="flex justify-between items-center">
+                                        <span class="cursor-pointer hover:text-orange-400" onclick="openWiseOldMan('${member.player.username}')">${member.player.displayName}</span>
+                                        <span class="text-orange-400 font-bold">${formatExperience(member.player.exp)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Top Combat Levels -->
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-orange-500">
+                            <h3 class="text-2xl font-bold text-orange-400 mb-4">⚔️ Top Combat Levels</h3>
+                            <div class="space-y-3">
+                                ${membersByCombat.slice(0, 5).map(member => `
+                                    <div class="flex justify-between items-center">
+                                        <span class="cursor-pointer hover:text-orange-400" onclick="openWiseOldMan('${member.player.username}')">${member.player.displayName}</span>
+                                        <span class="text-green-400 font-bold">${member.player.combatLevel || 'N/A'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Competitions -->
+                    ${competitions.length > 0 ? `
+                    <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-blue-500 mb-8">
+                        <h3 class="text-2xl font-bold text-blue-400 mb-4">🏁 Active Competitions</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            ${competitions.map(comp => `
+                                <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
+                                    <h4 class="font-bold text-blue-300 mb-2">${comp.title}</h4>
+                                    <p class="text-sm text-gray-300 mb-2">${getSkillEmoji(comp.metric)} ${comp.metric.charAt(0).toUpperCase() + comp.metric.slice(1)}</p>
+                                    <p class="text-xs text-gray-400">Ends: ${formatDate(comp.endsAt)}</p>
+                                    <p class="text-xs text-gray-400">${comp.participantCount} participants</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Top Total Levels -->
+                    <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-orange-500">
+                        <h3 class="text-2xl font-bold text-orange-400 mb-6">📊 Top Total Levels</h3>
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            ${membersByLevel.slice(0, 15).map((member, index) => {
+                                let totalLevel = 'N/A';
+                                try {
+                                    if (member.player && member.player.latestSnapshot && member.player.latestSnapshot.data) {
+                                        if (member.player.latestSnapshot.data.skills && member.player.latestSnapshot.data.skills.overall) {
+                                            totalLevel = member.player.latestSnapshot.data.skills.overall.level;
+                                        } else if (member.player.latestSnapshot.data.overall) {
+                                            totalLevel = member.player.latestSnapshot.data.overall.level;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.log('Error getting total level for display:', member.player.displayName, e);
+                                }
+                                return `
+                                    <div class="flex justify-between items-center">
+                                        <span class="cursor-pointer hover:text-orange-400" onclick="openWiseOldMan('${member.player.username}')">
+                                            #${index + 1} ${member.player.displayName}
+                                        </span>
+                                        <span class="text-yellow-400 font-bold">${totalLevel}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                console.log('🎉 Hiscores loaded successfully!');
+                
+            } catch (error) {
+                console.error('💥 Error loading hiscores:', error);
+                document.getElementById('hiscoresContent').innerHTML = `
+                    <div class="text-center">
+                        <p class="text-red-400 mb-4">❌ Failed to load hiscores</p>
+                        <div class="bg-red-900 bg-opacity-50 p-4 rounded-lg border border-red-500 max-w-2xl mx-auto">
+                            <h4 class="text-red-400 font-bold mb-2">Error Details:</h4>
+                            <p class="text-red-200 text-sm">${error.message}</p>
+                            <p class="text-gray-400 text-xs mt-2">Check the browser console (F12) for more details</p>
+                        </div>
+                        <button onclick="loadHiscores()" class="mt-4 bg-orange-600 hover:bg-orange-500 px-4 py-2 rounded text-white">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Backend server configuration
+        const BACKEND_URL = 'http://localhost:3000'; // Change this to your server URL when deployed
+        
+        // Direct webhook URLs (for testing)
+        const APPLICATION_WEBHOOK = 'https://discord.com/api/webhooks/1312519842829549754/ZZyDaJR4Pp39mm4AVnwmz6oSTTM8VC3leiF54mNGnXbOQTZDRe_7d0nvo9P4AzKxCNaY';
+        const ADMIN_WEBHOOK = 'https://discord.com/api/webhooks/1312519842829549264/wokEy-9DqZ6LqqWXGBsmoVVwvK7EypaoJzmbFIZ5c-rOtSPq2oEUdmmUYPW9ddw-0Imz';
+
+        // Load announcements from Discord webhook
+        async function loadAnnouncements() {
+            const announcementsContent = document.getElementById('announcementsContent');
+            
+            try {
+                announcementsContent.innerHTML = `
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                        <p class="text-gray-400 mt-2">Loading announcements...</p>
+                    </div>
+                `;
+
+                // Note: Discord webhooks don't support GET requests for reading messages
+                // This is a limitation - webhooks are only for sending, not reading
+                // You would need Discord Bot API with proper permissions to read messages
+                
+                // For now, show a message explaining this limitation
+                announcementsContent.innerHTML = `
+                    <div class="bg-yellow-900 bg-opacity-50 p-6 rounded-xl border border-yellow-500 mb-6">
+                        <h3 class="text-yellow-400 font-bold mb-2">⚠️ Discord Integration Note</h3>
+                        <p class="text-yellow-200 mb-4">Discord webhooks can only send messages, not read them. To display live announcements, you'll need:</p>
+                        <ul class="text-yellow-200 text-sm space-y-1 mb-4">
+                            <li>• A Discord Bot with message reading permissions</li>
+                            <li>• A backend server to fetch and serve the messages</li>
+                            <li>• Or use Discord's official embed widget</li>
+                        </ul>
+                        <p class="text-gray-300 text-sm">For now, applications will still be sent to Discord successfully!</p>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-red-500 glow">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <span class="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">IMPORTANT</span>
+                                <span class="text-gray-400 text-sm">Sample announcement</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-red-400 mb-2">Weekly Raid Event - Saturday 8PM GMT</h3>
+                            <p class="text-gray-300">Don't forget about our weekly CoX raid event this Saturday! We'll be running learner and experienced groups. Sign up in Discord #events channel. 🔥</p>
+                        </div>
+
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-yellow-500">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <span class="bg-yellow-600 text-white px-3 py-1 rounded-full text-sm font-bold">EVENT</span>
+                                <span class="text-gray-400 text-sm">Sample announcement</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-yellow-400 mb-2">Skill Competition: Firemaking Week!</h3>
+                            <p class="text-gray-300">This week's skill competition is Firemaking! Perfect for our clan theme. Prizes for top 3 gainers. Competition runs until Sunday midnight. Good luck everyone!</p>
+                        </div>
+
+                        <div class="bg-black bg-opacity-50 p-6 rounded-xl border border-green-500">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <span class="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">UPDATE</span>
+                                <span class="text-gray-400 text-sm">Sample announcement</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-green-400 mb-2">New Clan Requirements</h3>
+                            <p class="text-gray-300">We've updated our clan requirements slightly. New members now need 1750+ total level and 115+ combat. This helps maintain our active PvM focus.</p>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading announcements:', error);
+                announcementsContent.innerHTML = `
+                    <div class="text-center">
+                        <p class="text-red-400">Failed to load announcements</p>
+                        <button onclick="loadAnnouncements()" class="mt-2 bg-orange-600 hover:bg-orange-500 px-4 py-2 rounded text-white">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Show thank you page after successful submission
+        function showThankYouPage(rsn) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.add('hidden'));
+            
+            // Create and show thank you page
+            const thankYouSection = document.createElement('div');
+            thankYouSection.id = 'thankYou';
+            thankYouSection.className = 'section';
+            thankYouSection.innerHTML = `
+                <div class="max-w-4xl mx-auto px-4 py-12 text-center">
+                    <div class="bg-black bg-opacity-50 p-12 rounded-xl border border-green-500 glow">
+                        <div class="mb-8">
+                            <div class="text-6xl mb-4">🔥</div>
+                            <h2 class="text-5xl font-bold flame-text mb-6">Thank You!</h2>
+                            <h3 class="text-2xl text-green-400 mb-4">Application Submitted Successfully</h3>
+                        </div>
+                        
+                        <div class="bg-green-900 bg-opacity-30 p-6 rounded-lg border border-green-500 mb-8">
+                            <p class="text-green-200 text-lg mb-4">
+                                <span class="font-bold">${rsn}</span>, your application to join Ignite has been sent to our Discord server! 🎉
+                            </p>
+                            <div class="text-green-300 space-y-2">
+                                <p>✅ Application received and logged</p>
+                                <p>✅ Screenshots uploaded to our review channel</p>
+                                <p>✅ Leadership team has been notified</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-900 bg-opacity-30 p-6 rounded-lg border border-blue-500 mb-8">
+                            <h4 class="text-blue-400 font-bold text-xl mb-3">What happens next?</h4>
+                            <div class="text-blue-200 space-y-2 text-left max-w-2xl mx-auto">
+                                <p>📋 Our leadership team will review your application within <span class="font-bold">24-48 hours</span></p>
+                                <p>💬 You'll be contacted via Discord with the next steps</p>
+                                <p>🎮 If accepted, you'll receive an in-game clan invite</p>
+                                <p>🔥 Welcome to the Ignite family!</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <button onclick="showSection('welcome')" class="flame-gradient px-8 py-4 rounded-lg text-white font-bold text-lg hover:scale-105 transition-all glow mr-4">
+                                🏠 Return to Homepage
+                            </button>
+                            <a href="https://discord.gg/mK8pUe3F5t" target="_blank" class="inline-block bg-indigo-600 hover:bg-indigo-500 px-8 py-4 rounded-lg text-white font-bold text-lg transition-all glow">
+                                💬 Join Our Discord
+                            </a>
+                        </div>
+                        
+                        <div class="mt-8 text-gray-400 text-sm">
+                            <p>Questions? Contact us on Discord or reach out to our leadership team.</p>
+                            <p class="mt-2">Application ID: APP-${Date.now()}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add to page and show
+            document.querySelector('.pt-20').appendChild(thankYouSection);
+            
+            // Update navigation to highlight home
+            const navButtons = document.querySelectorAll('nav button');
+            navButtons.forEach(button => {
+                button.classList.remove('bg-orange-600', 'hover:bg-orange-500');
+                button.classList.add('bg-gray-700', 'hover:bg-gray-600');
+            });
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Debug functions
+        function logError(error, context = '') {
+            const timestamp = new Date().toLocaleTimeString();
+            const errorLog = document.getElementById('errorLog');
+            if (errorLog) {
+                const errorEntry = document.createElement('div');
+                errorEntry.className = 'text-red-300 mb-2 pb-2 border-b border-gray-700';
+                errorEntry.innerHTML = `
+                    <div class="text-xs text-gray-400">[${timestamp}] ${context}</div>
+                    <div class="text-red-400 font-bold">${error.name || 'Error'}: ${error.message}</div>
+                    ${error.stack ? `<div class="text-xs text-gray-500 mt-1">${error.stack.split('\n').slice(0, 3).join('\n')}</div>` : ''}
+                `;
+                
+                if (errorLog.querySelector('.text-gray-500')) {
+                    errorLog.innerHTML = '';
+                }
+                errorLog.appendChild(errorEntry);
+                errorLog.scrollTop = errorLog.scrollHeight;
+            }
+            console.error(`[${context}]`, error);
+        }
+
+        function toggleDebugSection() {
+            const debugSection = document.getElementById('debugSection');
+            if (debugSection.classList.contains('hidden')) {
+                debugSection.classList.remove('hidden');
+                // Initialize debug displays
+                updateWebhookDisplay();
+                setupFormValidation();
+            } else {
+                debugSection.classList.add('hidden');
+            }
+        }
+
+        function updateWebhookDisplay() {
+            const appDisplay = document.getElementById('appWebhookDisplay');
+            const adminDisplay = document.getElementById('adminWebhookDisplay');
+            
+            if (appDisplay) {
+                appDisplay.textContent = APPLICATION_WEBHOOK;
+                appDisplay.className = APPLICATION_WEBHOOK.includes('YOUR_DISCORD_WEBHOOK') ? 'text-red-400' : 'text-green-400';
+            }
+            
+            if (adminDisplay) {
+                adminDisplay.textContent = ADMIN_WEBHOOK;
+                adminDisplay.className = ADMIN_WEBHOOK.includes('YOUR_DISCORD_WEBHOOK') ? 'text-red-400' : 'text-green-400';
+            }
+        }
+
+        async function testWebhook(type) {
+            const resultsDiv = document.getElementById('webhookTestResults');
+            const webhook = type === 'application' ? APPLICATION_WEBHOOK : ADMIN_WEBHOOK;
+            const webhookName = type === 'application' ? 'Application' : 'Admin';
+            
+            resultsDiv.innerHTML = `<div class="text-yellow-400">🔄 Testing ${webhookName} webhook...</div>`;
+            
+            try {
+                // Step 1: Enhanced URL validation with detailed breakdown
+                resultsDiv.innerHTML += `<div class="text-blue-300">🔍 Analyzing webhook URL structure...</div>`;
+                
+                if (!webhook.startsWith('https://discord.com/api/webhooks/')) {
+                    throw new Error('Invalid webhook URL format - must start with https://discord.com/api/webhooks/');
+                }
+                
+                const urlParts = webhook.split('/');
+                if (urlParts.length < 7) {
+                    throw new Error('Webhook URL appears incomplete - missing webhook ID or token');
+                }
+                
+                const webhookId = urlParts[5];
+                const webhookToken = urlParts[6];
+                
+                // Enhanced validation
+                resultsDiv.innerHTML += `<div class="text-gray-300 text-xs">Full URL: ${webhook}</div>`;
+                resultsDiv.innerHTML += `<div class="text-gray-300 text-xs">URL Parts: ${urlParts.length} segments</div>`;
+                resultsDiv.innerHTML += `<div class="text-gray-300 text-xs">Webhook ID: ${webhookId} (${webhookId.length} chars)</div>`;
+                resultsDiv.innerHTML += `<div class="text-gray-300 text-xs">Token: ${webhookToken.substring(0, 10)}... (${webhookToken.length} chars)</div>`;
+                
+                // Check for common issues
+                if (webhookId.length < 17 || webhookId.length > 20) {
+                    resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ Webhook ID length unusual: ${webhookId.length} chars (expected 17-20)</div>`;
+                }
+                
+                if (webhookToken.length < 60 || webhookToken.length > 70) {
+                    resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ Token length unusual: ${webhookToken.length} chars (expected 60-70)</div>`;
+                }
+                
+                // Check for invalid characters
+                const validIdPattern = /^[0-9]+$/;
+                const validTokenPattern = /^[A-Za-z0-9_-]+$/;
+                
+                if (!validIdPattern.test(webhookId)) {
+                    resultsDiv.innerHTML += `<div class="text-red-300">❌ Webhook ID contains invalid characters (should be numbers only)</div>`;
+                }
+                
+                if (!validTokenPattern.test(webhookToken)) {
+                    resultsDiv.innerHTML += `<div class="text-red-300">❌ Token contains invalid characters</div>`;
+                }
+                
+                resultsDiv.innerHTML += `<div class="text-green-300">✅ URL format validation complete</div>`;
+                
+                // Step 2: Test Discord API connectivity first
+                resultsDiv.innerHTML += `<div class="text-blue-300">🌐 Testing Discord API connectivity...</div>`;
+                
+                try {
+                    const apiTest = await fetch('https://discord.com/api/v10/gateway', {
+                        method: 'GET',
+                        headers: {
+                            'User-Agent': 'IgniteClanWebsite/1.0'
+                        }
+                    });
+                    
+                    if (apiTest.ok) {
+                        resultsDiv.innerHTML += `<div class="text-green-300">✅ Discord API accessible (${apiTest.status})</div>`;
+                    } else {
+                        resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ Discord API returned ${apiTest.status}</div>`;
+                    }
+                } catch (apiError) {
+                    resultsDiv.innerHTML += `<div class="text-red-300">❌ Cannot reach Discord API: ${apiError.message}</div>`;
+                }
+                
+                // Step 3: Test webhook existence with GET request (this will fail but gives us info)
+                resultsDiv.innerHTML += `<div class="text-blue-300">🔍 Checking webhook existence...</div>`;
+                
+                try {
+                    const getResponse = await fetch(webhook, {
+                        method: 'GET',
+                        headers: {
+                            'User-Agent': 'IgniteClanWebsite/1.0'
+                        }
+                    });
+                    
+                    const getResponseText = await getResponse.text();
+                    resultsDiv.innerHTML += `<div class="text-gray-300 text-xs">GET Response: ${getResponse.status} - ${getResponseText}</div>`;
+                    
+                    if (getResponse.status === 405) {
+                        resultsDiv.innerHTML += `<div class="text-green-300">✅ Webhook exists (405 Method Not Allowed is expected)</div>`;
+                    } else if (getResponse.status === 404) {
+                        resultsDiv.innerHTML += `<div class="text-red-300">❌ Webhook not found (404) - webhook was deleted or URL is wrong</div>`;
+                        
+                        // Enhanced 404 diagnosis
+                        resultsDiv.innerHTML += `<div class="text-yellow-300 text-xs mt-2">🔍 404 Error Analysis:</div>`;
+                        resultsDiv.innerHTML += `<div class="text-yellow-300 text-xs">• Webhook ID: ${webhookId}</div>`;
+                        resultsDiv.innerHTML += `<div class="text-yellow-300 text-xs">• Token (first 10): ${webhookToken.substring(0, 10)}...</div>`;
+                        
+                        // Check if it's a permission issue
+                        if (getResponseText.includes('Unknown Webhook') || getResponseText.includes('10015')) {
+                            resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">🚨 "Unknown Webhook" error detected!</div>`;
+                            resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">This usually means:</div>`;
+                            resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">• Webhook was deleted from Discord</div>`;
+                            resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">• Channel permissions changed</div>`;
+                            resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">• Webhook URL is corrupted</div>`;
+                        }
+                        
+                    } else if (getResponse.status === 401) {
+                        resultsDiv.innerHTML += `<div class="text-red-300">❌ Unauthorized (401) - token is invalid</div>`;
+                    } else if (getResponse.status === 403) {
+                        resultsDiv.innerHTML += `<div class="text-red-300">❌ Forbidden (403) - Permission denied!</div>`;
+                        resultsDiv.innerHTML += `<div class="text-orange-300 text-xs">🔒 This could be a channel permission issue!</div>`;
+                    }
+                } catch (getError) {
+                    resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ GET test failed: ${getError.message}</div>`;
+                }
+                
+                // Step 4: Test with minimal payload
+                resultsDiv.innerHTML += `<div class="text-blue-300">📤 Testing POST with minimal payload...</div>`;
+                
+                const minimalPayload = {
+                    content: `🧪 Test from Ignite Clan Website - ${new Date().toLocaleTimeString()}`
+                };
+
+                const startTime = performance.now();
+                
+                console.log('🔗 Testing webhook:', webhook);
+                console.log('📦 Payload:', JSON.stringify(minimalPayload, null, 2));
+                
+                const response = await fetch(webhook, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'IgniteClanWebsite/1.0'
+                    },
+                    body: JSON.stringify(minimalPayload)
+                });
+                
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+                
+                console.log('📊 Response status:', response.status);
+                console.log('📊 Response headers:', [...response.headers.entries()]);
+                
+                // Get response text
+                let responseText = '';
+                try {
+                    responseText = await response.text();
+                    console.log('📝 Response body:', responseText);
+                } catch (e) {
+                    console.log('⚠️ Could not read response body:', e);
+                    responseText = 'Could not read response body';
+                }
+                
+                // Step 5: Analyze response with enhanced diagnostics
+                if (response.ok) {
+                    // Success case
+                    resultsDiv.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="text-green-400">✅ ${webhookName} Webhook Test SUCCESSFUL!</div>
+                            <div class="text-sm space-y-1">
+                                <div><span class="text-green-300">Status:</span> ${response.status} ${response.statusText}</div>
+                                <div><span class="text-green-300">Response Time:</span> ${responseTime}ms</div>
+                                <div><span class="text-green-300">Message:</span> Test message should appear in your Discord server</div>
+                                <div class="mt-2 p-2 bg-green-900 bg-opacity-30 rounded border border-green-500">
+                                    <div class="text-green-200 text-xs">🎉 Webhook is working correctly!</div>
+                                    <div class="text-green-200 text-xs">Check your Discord server for the test message.</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Now test with full embed
+                    setTimeout(async () => {
+                        try {
+                            resultsDiv.innerHTML += `<div class="text-blue-300 mt-4">🎨 Testing with full embed...</div>`;
+                            
+                            const fullPayload = {
+                                content: `🔥 **Full Embed Test - ${webhookName}**`,
+                                embeds: [{
+                                    title: "🧪 Advanced Webhook Test",
+                                    description: `This is a full embed test from the ${webhookName.toLowerCase()} webhook.`,
+                                    color: type === 'application' ? 16744448 : 10181046,
+                                    timestamp: new Date().toISOString(),
+                                    fields: [
+                                        { name: "Test Status", value: "✅ Full Embed Working", inline: true },
+                                        { name: "Timestamp", value: new Date().toLocaleString(), inline: true },
+                                        { name: "Webhook Type", value: webhookName, inline: true }
+                                    ],
+                                    footer: {
+                                        text: "Ignite Clan Website Test"
+                                    }
+                                }]
+                            };
+                            
+                            const embedResponse = await fetch(webhook, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(fullPayload)
+                            });
+                            
+                            if (embedResponse.ok) {
+                                resultsDiv.innerHTML += `<div class="text-green-300">✅ Full embed test successful!</div>`;
+                            } else {
+                                const embedError = await embedResponse.text();
+                                resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ Embed test failed: ${embedResponse.status} - ${embedError}</div>`;
+                            }
+                        } catch (embedError) {
+                            resultsDiv.innerHTML += `<div class="text-yellow-300">⚠️ Embed test error: ${embedError.message}</div>`;
+                        }
+                    }, 2000);
+                    
+                } else {
+                    // Error case - provide enhanced diagnosis
+                    let diagnosis = '';
+                    let solution = '';
+                    let specificHelp = '';
+                    
+                    switch (response.status) {
+                        case 400:
+                            diagnosis = 'Bad Request - The payload format is invalid';
+                            solution = 'Check that the JSON payload is properly formatted';
+                            break;
+                        case 401:
+                            diagnosis = 'Unauthorized - Invalid webhook token';
+                            solution = 'The webhook token in the URL is invalid or expired';
+                            specificHelp = `
+                                <div class="mt-2 p-2 bg-yellow-900 bg-opacity-50 rounded border border-yellow-500">
+                                    <div class="text-yellow-200 text-xs font-bold">🔧 How to fix 401 error:</div>
+                                    <div class="text-yellow-200 text-xs mt-1">1. Go to Discord Server Settings → Integrations → Webhooks</div>
+                                    <div class="text-yellow-200 text-xs">2. Find your webhook and click "Copy Webhook URL"</div>
+                                    <div class="text-yellow-200 text-xs">3. Replace the entire webhook URL in the code</div>
+                                    <div class="text-yellow-200 text-xs">4. Make sure you copy the FULL URL including the token</div>
+                                </div>
+                            `;
+                            break;
+                        case 404:
+                            diagnosis = 'Not Found - Webhook doesn\'t exist or was deleted';
+                            solution = 'The webhook was deleted or the URL is incorrect';
+                            specificHelp = `
+                                <div class="mt-2 p-2 bg-red-900 bg-opacity-50 rounded border border-red-500">
+                                    <div class="text-red-200 text-xs font-bold">🚨 404 Error - Webhook Missing!</div>
+                                    <div class="text-red-200 text-xs mt-1">This means Discord cannot find the webhook.</div>
+                                    <div class="text-red-200 text-xs font-bold mt-2">Most Common Causes:</div>
+                                    <div class="text-red-200 text-xs">• Webhook was deleted from Discord server</div>
+                                    <div class="text-red-200 text-xs">• Channel permissions changed (channel locked/restricted)</div>
+                                    <div class="text-red-200 text-xs">• Wrong webhook URL copied</div>
+                                    <div class="text-red-200 text-xs">• Webhook ID or token is corrupted</div>
+                                    <div class="text-red-200 text-xs font-bold mt-2">🔒 Channel Permission Issues:</div>
+                                    <div class="text-red-200 text-xs">If the channel is locked or has restricted permissions:</div>
+                                    <div class="text-red-200 text-xs">• The webhook might still exist but be inaccessible</div>
+                                    <div class="text-red-200 text-xs">• Discord returns 404 instead of 403 for security</div>
+                                    <div class="text-red-200 text-xs">• Check if the channel has "Send Messages" permission for @everyone</div>
+                                    <div class="text-red-200 text-xs font-bold mt-2">Solution:</div>
+                                    <div class="text-red-200 text-xs">1. Check channel permissions first (unlock if needed)</div>
+                                    <div class="text-red-200 text-xs">2. Go to Discord Server Settings → Integrations</div>
+                                    <div class="text-red-200 text-xs">3. Delete the old webhook and create a NEW one</div>
+                                    <div class="text-red-200 text-xs">4. Copy the new webhook URL completely</div>
+                                    <div class="text-red-200 text-xs">5. Replace the webhook URL in the code</div>
+                                    <div class="text-red-200 text-xs">6. Ensure the target channel allows webhook messages</div>
+                                </div>
+                            `;
+                            break;
+                        case 429:
+                            diagnosis = 'Rate Limited - Too many requests';
+                            solution = 'Wait a few minutes before testing again';
+                            break;
+                        case 500:
+                        case 502:
+                        case 503:
+                            diagnosis = 'Discord server error';
+                            solution = 'Try again in a few minutes - this is a Discord issue';
+                            break;
+                        default:
+                            diagnosis = `HTTP ${response.status} error`;
+                            solution = 'Check Discord server status and webhook configuration';
+                    }
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="text-red-400">❌ ${webhookName} Webhook Test FAILED</div>
+                            <div class="text-sm space-y-1">
+                                <div><span class="text-red-300">Status:</span> ${response.status} ${response.statusText}</div>
+                                <div><span class="text-red-300">Response Time:</span> ${responseTime}ms</div>
+                                <div><span class="text-red-300">Diagnosis:</span> ${diagnosis}</div>
+                                <div><span class="text-red-300">Solution:</span> ${solution}</div>
+                            </div>
+                            <div class="mt-2 p-2 bg-red-900 bg-opacity-30 rounded border border-red-500">
+                                <div class="text-red-200 text-xs font-bold">Discord Response:</div>
+                                <div class="text-red-200 text-xs mt-1">${responseText || 'No response body'}</div>
+                            </div>
+                            <div class="mt-2 p-2 bg-gray-900 bg-opacity-50 rounded border border-gray-600">
+                                <div class="text-gray-300 text-xs font-bold">Webhook Analysis:</div>
+                                <div class="text-gray-300 text-xs mt-1">ID: ${webhookId}</div>
+                                <div class="text-gray-300 text-xs">Token: ${webhookToken.substring(0, 10)}...${webhookToken.slice(-5)}</div>
+                                <div class="text-gray-300 text-xs">Full URL: ${webhook}</div>
+                            </div>
+                            ${specificHelp}
+                        </div>
+                    `;
+                    
+                    throw new Error(`${diagnosis}: ${responseText}`);
+                }
+
+            } catch (error) {
+                console.error('🚨 Webhook test error:', error);
+                
+                if (!resultsDiv.innerHTML.includes('FAILED')) {
+                    let errorType = 'Unknown Error';
+                    let troubleshooting = '';
+                    
+                    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                        errorType = 'Network Connection Error';
+                        troubleshooting = `
+                            <div class="text-yellow-200 text-xs mt-2">
+                                <div class="font-bold">Possible causes:</div>
+                                <div>• Internet connection issues</div>
+                                <div>• Browser blocking the request (CORS/security)</div>
+                                <div>• Discord API temporarily unavailable</div>
+                                <div>• Firewall or network restrictions</div>
+                                <div class="font-bold mt-2">Try:</div>
+                                <div>• Refresh the page and test again</div>
+                                <div>• Try from a different browser or device</div>
+                                <div>• Check if Discord is down: discordstatus.com</div>
+                            </div>
+                        `;
+                    } else if (error.message.includes('Invalid webhook URL')) {
+                        errorType = 'Invalid Webhook Configuration';
+                        troubleshooting = `
+                            <div class="text-yellow-200 text-xs mt-2">
+                                <div class="font-bold">How to fix:</div>
+                                <div>1. Go to your Discord server settings</div>
+                                <div>2. Navigate to Integrations → Webhooks</div>
+                                <div>3. Create a new webhook or copy existing URL</div>
+                                <div>4. Replace the webhook URL in the code</div>
+                            </div>
+                        `;
+                    }
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="text-red-400">❌ ${webhookName} Webhook Test FAILED</div>
+                            <div class="text-sm space-y-1">
+                                <div><span class="text-red-300">Error Type:</span> ${errorType}</div>
+                                <div><span class="text-red-300">Details:</span> ${error.message}</div>
+                            </div>
+                            <div class="mt-2 p-2 bg-red-900 bg-opacity-30 rounded border border-red-500">
+                                <div class="text-red-200 text-xs font-bold">Full Error:</div>
+                                <div class="text-red-200 text-xs mt-1 font-mono">${error.stack || error.message}</div>
+                            </div>
+                            ${troubleshooting}
+                        </div>
+                    `;
+                }
+                
+                logError(error, `${webhookName} Webhook Test`);
+            }
+        }
+
+        async function runNetworkDiagnostics() {
+            const diagnosticsDiv = document.getElementById('networkDiagnostics');
+            diagnosticsDiv.innerHTML = '<div class="text-yellow-400">🔄 Running network diagnostics...</div>';
+            
+            const results = [];
+            
+            try {
+                // Test 1: Basic connectivity
+                results.push('🌐 Testing basic connectivity...');
+                const connectivityTest = await fetch('https://httpbin.org/get', { method: 'GET' });
+                results.push(`✅ Basic connectivity: ${connectivityTest.status} (${Math.round(performance.now())}ms)`);
+                
+                // Test 2: Discord API accessibility
+                results.push('🔗 Testing Discord API accessibility...');
+                const discordTest = await fetch('https://discord.com/api/v10/gateway', { method: 'GET' });
+                results.push(`✅ Discord API: ${discordTest.status} (accessible)`);
+                
+                // Test 3: CORS and headers
+                results.push('📋 Checking browser capabilities...');
+                results.push(`✅ User Agent: ${navigator.userAgent.substring(0, 50)}...`);
+                results.push(`✅ Online Status: ${navigator.onLine ? 'Online' : 'Offline'}`);
+                results.push(`✅ Connection: ${navigator.connection ? navigator.connection.effectiveType : 'Unknown'}`);
+                
+                // Test 4: Webhook URL validation
+                results.push('🔍 Validating webhook URLs...');
+                const appWebhookValid = APPLICATION_WEBHOOK.startsWith('https://discord.com/api/webhooks/');
+                const adminWebhookValid = ADMIN_WEBHOOK.startsWith('https://discord.com/api/webhooks/');
+                results.push(`${appWebhookValid ? '✅' : '❌'} Application webhook format: ${appWebhookValid ? 'Valid' : 'Invalid'}`);
+                results.push(`${adminWebhookValid ? '✅' : '❌'} Admin webhook format: ${adminWebhookValid ? 'Valid' : 'Invalid'}`);
+                
+            } catch (error) {
+                results.push(`❌ Network diagnostic failed: ${error.message}`);
+                logError(error, 'Network Diagnostics');
+            }
+            
+            diagnosticsDiv.innerHTML = results.map(result => `<div>${result}</div>`).join('');
+        }
+
+        function setupFormValidation() {
+            const form = document.getElementById('applicationForm');
+            if (!form) return;
+            
+            const validationDiv = document.getElementById('formValidation');
+            const previewDiv = document.getElementById('formDataPreview');
+            
+            function validateAndPreview() {
+                const formData = new FormData(form);
+                const validation = [];
+                const preview = {};
+                
+                // Get all form inputs
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    if (input.type === 'file') return;
+                    
+                    const value = input.value.trim();
+                    const name = input.placeholder || input.name || 'Unknown field';
+                    
+                    if (input.hasAttribute('required')) {
+                        if (!value) {
+                            validation.push(`❌ ${name}: Required field is empty`);
+                        } else {
+                            validation.push(`✅ ${name}: Valid`);
+                        }
+                    }
+                    
+                    if (value) {
+                        preview[name] = value;
+                    }
+                });
+                
+                // Update validation display
+                validationDiv.innerHTML = validation.length > 0 
+                    ? validation.map(v => `<div class="text-sm">${v}</div>`).join('')
+                    : '<p class="text-gray-400">No validation results yet...</p>';
+                
+                // Update preview display
+                previewDiv.innerHTML = Object.keys(preview).length > 0
+                    ? `<pre class="text-xs">${JSON.stringify(preview, null, 2)}</pre>`
+                    : '<span class="text-gray-500">Form data will appear here as you fill it out...</span>';
+            }
+            
+            // Add event listeners to all form inputs
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', validateAndPreview);
+                input.addEventListener('change', validateAndPreview);
+            });
+        }
+
+        function clearErrorLog() {
+            const errorLog = document.getElementById('errorLog');
+            if (errorLog) {
+                errorLog.innerHTML = '<span class="text-gray-500">No errors logged yet...</span>';
+            }
+        }
+
+        // Upload images to Discord
+        async function uploadImagesToDiscord(files, applicantName) {
+            const uploadedUrls = [];
+            
+            for (const file of files) {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('content', `📸 Application images from: **${applicantName}**`);
+                    
+                    const response = await fetch(ADMIN_WEBHOOK, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        uploadedUrls.push(`✅ ${file.name} uploaded successfully`);
+                    } else {
+                        uploadedUrls.push(`❌ ${file.name} failed to upload`);
+                        logError(new Error(`Upload failed: ${response.status}`), `Image Upload - ${file.name}`);
+                    }
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    uploadedUrls.push(`❌ ${file.name} failed to upload`);
+                    logError(error, `Image Upload - ${file.name}`);
+                }
+            }
+            
+            return uploadedUrls;
+        }
+
+        // Application form handling with Discord integration
+        function setupApplicationForm() {
+            const form = document.getElementById('applicationForm');
+            if (!form) return;
+            
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                console.log('Form submitted!');
+                
+                const submitButton = this.querySelector('button[type="submit"]');
+                const originalText = submitButton.textContent;
+                submitButton.textContent = 'Submitting...';
+                submitButton.disabled = true;
+                
+                try {
+                    // Get all form values directly by their input elements
+                    const formInputs = this.querySelectorAll('input, select, textarea');
+                    const formValues = {};
+                    
+                    formInputs.forEach((input, index) => {
+                        if (input.type === 'file') return; // Handle files separately
+                        
+                        const placeholder = input.placeholder;
+                        const value = input.value;
+                        
+                        if (placeholder === 'Your in-game name') formValues.rsn = value;
+                        else if (placeholder === '1750+') formValues.totalLevel = value;
+                        else if (placeholder === '115+') formValues.combatLevel = value;
+                        else if (placeholder === '200+') formValues.questPoints = value;
+                        else if (placeholder === '94+') formValues.magicLevel = value;
+                        else if (placeholder === '90+') formValues.rangedLevel = value;
+                        else if (placeholder === '83+') formValues.constructionLevel = value;
+                        else if (placeholder === '78+') formValues.herbloreLevel = value;
+                        else if (placeholder === 'username#1234') formValues.discordUsername = value;
+                        else if (placeholder === 'Tell us about yourself and why you\'d like to join our clan...') formValues.whyJoin = value;
+                    });
+                    
+                    // Get KC values specifically
+                    const kcInputs = this.querySelectorAll('input[placeholder="Enter KC"]');
+                    const coxKc = kcInputs[0]?.value || '0';
+                    const tobKc = kcInputs[1]?.value || '0';
+                    const toaKc = kcInputs[2]?.value || '0';
+                    
+                    // Get select values
+                    const selects = this.querySelectorAll('select');
+                    const fireCape = selects[0]?.value || 'Not specified';
+                    const augury = selects[1]?.value || 'Not specified';
+                    const piety = selects[2]?.value || 'Not specified';
+                    const rigour = selects[3]?.value || 'Not specified';
+                    const howHeard = selects[4]?.value || 'Not specified';
+                    
+                    if (!formValues.rsn) {
+                        alert('Please enter your RSN (RuneScape Name)');
+                        return;
+                    }
+                    
+                    // Calculate total raid KC
+                    const totalRaidKc = parseInt(coxKc) + parseInt(tobKc) + parseInt(toaKc);
+                    
+                    // Collect all file inputs
+                    const fileInputs = this.querySelectorAll('input[type="file"]');
+                    const formData = new FormData();
+                    
+                    // Add all form data
+                    formData.append('rsn', formValues.rsn);
+                    formData.append('discordUsername', formValues.discordUsername);
+                    formData.append('totalLevel', formValues.totalLevel);
+                    formData.append('combatLevel', formValues.combatLevel);
+                    formData.append('questPoints', formValues.questPoints);
+                    formData.append('magicLevel', formValues.magicLevel);
+                    formData.append('rangedLevel', formValues.rangedLevel);
+                    formData.append('constructionLevel', formValues.constructionLevel);
+                    formData.append('herbloreLevel', formValues.herbloreLevel);
+                    formData.append('fireCape', fireCape);
+                    formData.append('coxKc', coxKc);
+                    formData.append('tobKc', tobKc);
+                    formData.append('toaKc', toaKc);
+                    formData.append('totalRaidKc', totalRaidKc);
+                    formData.append('augury', augury);
+                    formData.append('piety', piety);
+                    formData.append('rigour', rigour);
+                    formData.append('whyJoin', formValues.whyJoin || '');
+                    formData.append('howHeard', howHeard);
+                    
+                    // Add all uploaded files
+                    let totalFiles = 0;
+                    fileInputs.forEach((input, index) => {
+                        if (input.files && input.files.length > 0) {
+                            for (let i = 0; i < input.files.length; i++) {
+                                formData.append('images', input.files[i]);
+                                totalFiles++;
+                            }
+                        }
+                    });
+                    
+                    console.log(`Submitting application with ${totalFiles} files to backend server...`);
+                    submitButton.textContent = `Uploading ${totalFiles} files...`;
+                    
+                    // Try backend server first, fallback to direct webhook
+                    let response;
+                    try {
+                        response = await fetch(`${BACKEND_URL}/submit-application`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Backend server error: ${response.status}`);
+                        }
+                        
+                        const result = await response.json();
+                        console.log('Backend server response:', result);
+                        
+                    } catch (backendError) {
+                        console.warn('Backend server unavailable, falling back to direct webhook:', backendError.message);
+                        
+                        // Fallback to direct webhook (without file uploads)
+                        submitButton.textContent = 'Sending via direct webhook...';
+                        
+                        const embed = {
+                            title: "🔥 New Clan Application",
+                            color: 16744448,
+                            description: `New application from **${formValues.rsn}**\n\n**Application ID:** APP-${Date.now()}`,
+                            fields: [
+                                { name: "👤 RSN", value: formValues.rsn || "Not provided", inline: true },
+                                { name: "💬 Discord", value: formValues.discordUsername || "Not provided", inline: true },
+                                { name: "📊 Total Level", value: formValues.totalLevel || "Not provided", inline: true },
+                                { name: "⚔️ Combat Level", value: formValues.combatLevel || "Not provided", inline: true },
+                                { name: "📜 Quest Points", value: formValues.questPoints || "Not provided", inline: true },
+                                { name: "🔮 Magic Level", value: formValues.magicLevel || "Not provided", inline: true },
+                                { name: "🏹 Ranged Level", value: formValues.rangedLevel || "Not provided", inline: true },
+                                { name: "🏠 Construction", value: formValues.constructionLevel || "Not provided", inline: true },
+                                { name: "🧪 Herblore", value: formValues.herbloreLevel || "Not provided", inline: true },
+                                { name: "🔥 Fire Cape", value: fireCape, inline: true },
+                                { name: "🏛️ Chambers KC", value: coxKc, inline: true },
+                                { name: "🎭 Theatre KC", value: tobKc, inline: true },
+                                { name: "🏺 Tombs KC", value: toaKc, inline: true },
+                                { name: "🎯 Total Raid KC", value: totalRaidKc.toString(), inline: true },
+                                { name: "📿 Augury", value: augury, inline: true },
+                                { name: "⚔️ Piety", value: piety, inline: true },
+                                { name: "🏹 Rigour", value: rigour, inline: true }
+                            ],
+                            footer: {
+                                text: "Ignite Clan Application • React with ✅ to approve, ❌ to deny",
+                                icon_url: "https://imgur.com/u2cvtkN.png"
+                            },
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        if (formValues.whyJoin && formValues.whyJoin.trim()) {
+                            embed.fields.push({
+                                name: "💭 Why join Ignite?",
+                                value: formValues.whyJoin.substring(0, 1024),
+                                inline: false
+                            });
+                        }
+                        
+                        if (howHeard && howHeard !== 'Select an option') {
+                            embed.fields.push({
+                                name: "📢 How did you hear about us?",
+                                value: howHeard,
+                                inline: false
+                            });
+                        }
+                        
+                        if (totalFiles > 0) {
+                            embed.fields.push({
+                                name: "📸 Screenshots",
+                                value: `⚠️ ${totalFiles} files were uploaded but could not be sent (backend server required for file uploads)`,
+                                inline: false
+                            });
+                        }
+                        
+                        response = await fetch(APPLICATION_WEBHOOK, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                content: `🔥 **New Clan Application Received!**`,
+                                embeds: [embed]
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(`Discord webhook failed: ${response.status} - ${errorText}`);
+                        }
+                    }
+                    
+                    // Show thank you page
+                    showThankYouPage(formValues.rsn);
+                    
+                } catch (error) {
+                    console.error('Detailed error submitting application:', error);
+                    logError(error, 'Application Submission');
+                    
+                    // Show user-friendly error message
+                    let errorMessage = 'There was an error submitting your application:\n\n';
+                    
+                    if (error.message.includes('404') || error.message.includes('Unknown Webhook')) {
+                        errorMessage += '❌ Discord webhook not set up correctly.\n\n';
+                        errorMessage += 'The website admin needs to:\n';
+                        errorMessage += '1. Create a Discord webhook in server settings\n';
+                        errorMessage += '2. Replace the webhook URL in the code\n\n';
+                        errorMessage += 'Please contact the clan leadership directly on Discord for now.';
+                    } else if (error.message.includes('Failed to fetch') || error.message.includes('network')) {
+                        errorMessage += '🌐 Network connection issue.\n\n';
+                        errorMessage += 'Please check your internet connection and try again.';
+                    } else {
+                        errorMessage += error.message + '\n\n';
+                        errorMessage += 'Please try again or contact us directly on Discord.';
+                    }
+                    
+                    // Also show debug panel if not already visible
+                    const debugSection = document.getElementById('debugSection');
+                    if (debugSection && debugSection.classList.contains('hidden')) {
+                        debugSection.classList.remove('hidden');
+                        updateWebhookDisplay();
+                        setupFormValidation();
+                    }
+                    
+                    alert(errorMessage + '\n\n💡 Check the Debug Panel below for detailed error information.');
+                } finally {
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                }
+            });
+        }
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load clan members, hiscores, and announcements when page loads
+            loadClanMembers();
+            loadHiscores();
+            loadAnnouncements();
+            
+            // Setup application form
+            setupApplicationForm();
+            
+            // Animate flame logo
+            const logo = document.querySelector('svg');
+            if (logo) {
+                setInterval(() => {
+                    logo.style.filter = `hue-rotate(${Math.random() * 30}deg)`;
+                }, 2000);
+            }
+        });
+
+        // Add hover effects to dynamically created member cards
+        document.addEventListener('mouseenter', function(e) {
+            if (e.target.closest('.member-card')) {
+                e.target.closest('.member-card').style.boxShadow = '0 0 30px rgba(255, 69, 0, 0.3)';
+            }
+        }, true);
+        
+        document.addEventListener('mouseleave', function(e) {
+            if (e.target.closest('.member-card')) {
+                e.target.closest('.member-card').style.boxShadow = 'none';
+            }
+        }, true);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'967cdf9d27ffccf4',t:'MTc1Mzk2MjU3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
